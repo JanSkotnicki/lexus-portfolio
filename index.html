@@ -1,1 +1,93 @@
-<!DOCTYPE html><html><head><title>Lexus Portfolio</title></head><body><h1>Hello</h1></body></html>
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexus Portfolio</title>
+<style>
+  :root {
+    --headline-size: clamp(2.25rem, 7vw, 6.5rem);
+    --caption-size: calc(var(--headline-size) / 8);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background: #ffffff;
+    color: #111111;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+  }
+
+  .hero {
+    width: 100%;
+    padding: 6vh 8vw;
+  }
+
+  .hero__headline {
+    display: block;
+  }
+
+  .hero__line {
+    display: block;
+    font-size: var(--headline-size);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .hero__caption {
+    margin-top: 6vh;
+    font-size: var(--caption-size);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    color: #6b6b6b;
+    text-align: left;
+  }
+
+  @media (max-width: 600px) {
+    .hero__line {
+      white-space: normal;
+      letter-spacing: -0.02em;
+    }
+
+    .hero__caption {
+      margin-top: 4vh;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <section class="hero">
+    <h1 class="hero__headline">
+      <span class="hero__line" data-line>Months of planning.</span>
+      <span class="hero__line" data-line>One perfect event.</span>
+      <span class="hero__line" data-line>And nothing to put in a report.</span>
+    </h1>
+    <p class="hero__caption">Jan Skotnicki — event marketing, premium automotive</p>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script>
+    gsap.from("[data-line]", {
+      y: 40,
+      opacity: 0,
+      duration: 1,
+      stagger: 0.2,
+      ease: "power2.out"
+    });
+  </script>
+</body>
+</html>
