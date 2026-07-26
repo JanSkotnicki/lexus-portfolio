@@ -24,13 +24,16 @@
     background: #ffffff;
     color: #111111;
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
-    display: flex;
-    align-items: center;
   }
 
   .hero {
     width: 100%;
+    min-height: 100vh;
     padding: 6vh 8vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
   }
 
   .hero__headline {
@@ -66,6 +69,57 @@
       margin-top: 4vh;
     }
   }
+
+  .pov {
+    padding: 2vh 8vw 14vh;
+  }
+
+  .pov__grid {
+    display: flex;
+    gap: 2.5rem;
+  }
+
+  .pov__item {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pov__frame {
+    border-radius: 24px;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  .pov__frame img {
+    aspect-ratio: 4 / 3;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .pov__frame:hover img {
+    transform: scale(1.05);
+  }
+
+  .pov__thesis,
+  .pov__caption {
+    margin-top: 1.5rem;
+    color: #fff;
+    mix-blend-mode: difference;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 768px) {
+    .pov__grid {
+      flex-direction: column;
+    }
+  }
 </style>
 </head>
 <body>
@@ -79,14 +133,45 @@
     <p class="hero__caption">Jan Skotnicki — event marketing, premium automotive</p>
   </section>
 
+  <section class="pov">
+    <div class="pov__grid">
+      <div class="pov__item">
+        <div class="pov__frame">
+          <img src="images/event.jpg?v=2" alt="Event photo">
+        </div>
+        <p class="pov__thesis">Every brand measures events. No dealer can.</p>
+      </div>
+      <div class="pov__item">
+        <div class="pov__frame">
+          <img src="images/portrait.jpg?v=2" alt="Portrait photo">
+        </div>
+        <p class="pov__caption">Jan Skotnicki</p>
+      </div>
+    </div>
+  </section>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script>
+    gsap.registerPlugin(ScrollTrigger);
+
     gsap.from("[data-line]", {
       y: 40,
       opacity: 0,
       duration: 1,
       stagger: 0.2,
       ease: "power2.out"
+    });
+
+    gsap.to("body", {
+      backgroundColor: "#000000",
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".pov",
+        start: "top bottom",
+        end: "top top",
+        scrub: true
+      }
     });
   </script>
 </body>
