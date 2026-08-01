@@ -8,6 +8,7 @@
   :root {
     --headline-size: clamp(2.25rem, 7vw, 6.5rem);
     --caption-size: calc(var(--headline-size) / 5.5);
+    --headline-statement: clamp(2rem, 5vw, 3.5rem);
 
     --space: 8px;
     --space-2: calc(var(--space) * 2);   /* 16px */
@@ -274,10 +275,10 @@
 
   .thesis__headline {
     max-width: 900px;
-    font-size: clamp(1.75rem, 5vw, 3.5rem);
+    font-size: var(--headline-statement);
     font-weight: 600;
     line-height: 1.2;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
   }
 
   .thesis__body {
@@ -294,7 +295,7 @@
     font-size: clamp(1.25rem, 2.4vw, 1.75rem);
     font-weight: 400;
     line-height: 1.6;
-    color: #222222;
+    color: #111111;
   }
 
   @media (max-width: 768px) {
@@ -325,7 +326,7 @@
   .contact__headline {
     margin-top: var(--space-12);
     max-width: 900px;
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: var(--headline-statement);
     font-weight: 600;
     line-height: 1.12;
     letter-spacing: -0.03em;
@@ -349,7 +350,7 @@
 
   .contact__name {
     font-size: clamp(1.5rem, 3vw, 2.25rem);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.01em;
     text-align: left;
   }
@@ -358,7 +359,7 @@
     margin-top: var(--space-2);
     font-size: 1rem;
     font-weight: 400;
-    color: #888888;
+    color: #6b6b6b;
     line-height: 1.5;
     text-align: left;
   }
@@ -399,7 +400,7 @@
   .contact__footer {
     margin-top: var(--space-12);
     font-size: 0.85rem;
-    color: #888888;
+    color: #6b6b6b;
     text-align: left;
     opacity: 0;
   }
