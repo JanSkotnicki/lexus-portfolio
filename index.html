@@ -411,6 +411,42 @@
       margin-top: 60px;
     }
   }
+
+  /* Mobile-only fixes: spacing + Thesis pin disabled (see matchMedia in <script>). Desktop untouched. */
+  @media (max-width: 767px) {
+    .hero {
+      justify-content: flex-start;
+      padding-top: 10vh;
+    }
+
+    .pov {
+      padding-top: 1vh;
+    }
+
+    .section-divider {
+      margin-top: 60px;
+      margin-bottom: 50px;
+    }
+
+    .proof {
+      padding-top: 30px;
+    }
+
+    .thesis {
+      min-height: auto;
+    }
+
+    .thesis__pin {
+      min-height: auto;
+      padding-top: 40px;
+    }
+
+    .contact {
+      min-height: auto;
+      padding-top: 100px;
+      padding-bottom: 60px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -546,25 +582,50 @@
       .fromTo("body", { backgroundColor: "#ffffff" }, { backgroundColor: "#000000", ease: "none", duration: 0.6 })
       .to("body", { backgroundColor: "#ffffff", ease: "none", duration: 0.6 }, "+=0.4");
 
-    const thesisTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".thesis",
-        start: "top top",
-        end: "+=150%",
-        scrub: true,
-        pin: ".thesis__pin"
-      }
+    // gsap.matchMedia() scopes the pinned Thesis timeline to desktop only.
+    // Mobile browsers resize the viewport mid-scroll (address bar hide/show),
+    // which makes pinned ScrollTriggers jump — so mobile gets an unpinned,
+    // simple fade-in version instead. Desktop branch below is byte-identical
+    // to the previous unconditional code.
+    const thesisMM = gsap.matchMedia();
+
+    thesisMM.add("(min-width: 768px)", () => {
+      const thesisTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".thesis",
+          start: "top top",
+          end: "+=150%",
+          scrub: true,
+          pin: ".thesis__pin"
+        }
+      });
+
+      thesisTl
+        .fromTo(".thesis__headline", { y: "12vh" }, { y: "0vh", ease: "none", duration: 0.4 })
+        .to(".thesis__para", {
+          opacity: 1,
+          y: 0,
+          ease: "none",
+          duration: 1,
+          stagger: 1.2
+        }, "+=0.2");
     });
 
-    thesisTl
-      .fromTo(".thesis__headline", { y: "12vh" }, { y: "0vh", ease: "none", duration: 0.4 })
-      .to(".thesis__para", {
-        opacity: 1,
-        y: 0,
-        ease: "none",
-        duration: 1,
-        stagger: 1.2
-      }, "+=0.2");
+    thesisMM.add("(max-width: 767px)", () => {
+      gsap.utils.toArray(".thesis__para").forEach((para) => {
+        gsap.to(para, {
+          opacity: 1,
+          y: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: para,
+            start: "top 85%",
+            end: "top 55%",
+            scrub: true
+          }
+        });
+      });
+    });
 
     gsap.to("body", {
       backgroundColor: "#0a0a0a",
