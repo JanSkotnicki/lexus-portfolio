@@ -71,8 +71,8 @@
   }
 
   .pov {
-    min-height: 100vh;
-    padding: 2vh 8vw 4vh;
+    min-height: auto;
+    padding: 2vh 8vw 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -126,8 +126,8 @@
   }
 
   .proof {
-    min-height: 100vh;
-    padding: 4vh 8vw 80px;
+    min-height: auto;
+    padding: 60px 8vw 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -137,8 +137,12 @@
     display: flex;
     align-items: center;
     width: 100%;
+    max-width: 84vw;
+    margin-left: auto;
+    margin-right: auto;
     gap: 32px;
-    margin-bottom: 8vh;
+    margin-top: 120px;
+    margin-bottom: 100px;
   }
 
   .divider-line {
@@ -274,7 +278,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-width: 680px;
+    max-width: 900px;
   }
 
   .thesis__para {
@@ -325,12 +329,13 @@
     </div>
   </section>
 
+  <div class="section-divider">
+    <span class="divider-line"></span>
+    <span class="divider-label">Proof</span>
+    <span class="divider-line"></span>
+  </div>
+
   <section class="proof">
-    <div class="section-divider">
-      <span class="divider-line"></span>
-      <span class="divider-label">Proof</span>
-      <span class="divider-line"></span>
-    </div>
     <div class="proof__grid">
       <a class="proof__item" href="#">
         <div class="proof__frame">
@@ -357,9 +362,9 @@
     <div class="thesis__pin">
       <h2 class="thesis__headline">Anticipating the need before the guest knows it.</h2>
       <div class="thesis__body">
-        <p class="thesis__para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore.</p>
-        <p class="thesis__para">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.</p>
-        <p class="thesis__para">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+        <p class="thesis__para">The air conditioning runs before the guest opens the door. On warm days, no one steps into heat — the car has already adjusted to their comfort before they arrive. Water is already there. Navigation is already set. Nothing is prepared in front of the guest; everything is prepared before them.</p>
+        <p class="thesis__para">A quiet soundtrack plays — present enough to soften the silence, quiet enough to never demand attention. It does more than fill space: it creates room to read what the guest needs, before they have to say it. Some want conversation. Others want to arrive in peace. The right atmosphere makes that clear without a single question asked.</p>
+        <p class="thesis__para">For VIP transfers, umbrellas wait by the door — not because rain is expected, but because it might happen. Omotenashi is not reacting well. It is removing the moment where a guest would have had to ask at all.</p>
       </div>
     </div>
   </section>
@@ -404,14 +409,16 @@
     });
 
     thesisTl
-      .fromTo(".thesis__headline", { y: "40vh" }, { y: "0vh", ease: "none", duration: 1 })
+      .fromTo(".thesis__headline", { y: "12vh" }, { y: "0vh", ease: "none", duration: 0.4 })
       .to(".thesis__para", {
         opacity: 1,
         y: 0,
         ease: "none",
         duration: 1,
-        stagger: 0.6
+        stagger: 1.2
       }, "+=0.2");
+
+    window.addEventListener("load", () => ScrollTrigger.refresh());
   </script>
 </body>
 </html>
