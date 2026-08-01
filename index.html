@@ -8,6 +8,14 @@
   :root {
     --headline-size: clamp(2.25rem, 7vw, 6.5rem);
     --caption-size: calc(var(--headline-size) / 5.5);
+
+    --space: 8px;
+    --space-2: calc(var(--space) * 2);   /* 16px */
+    --space-4: calc(var(--space) * 4);   /* 32px */
+    --space-8: calc(var(--space) * 8);   /* 64px */
+    --space-12: calc(var(--space) * 12); /* 96px */
+    --space-16: calc(var(--space) * 16); /* 128px */
+    --space-24: calc(var(--space) * 24); /* 192px */
   }
 
   * {
@@ -29,7 +37,7 @@
   .hero {
     width: 100%;
     min-height: 100vh;
-    padding: 6vh 8vw;
+    padding: var(--space-8) 8vw;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -51,7 +59,7 @@
   }
 
   .hero__caption {
-    margin-top: 6vh;
+    margin-top: var(--space-8);
     font-size: var(--caption-size);
     font-weight: 400;
     letter-spacing: 0.01em;
@@ -72,7 +80,7 @@
 
   .pov {
     min-height: auto;
-    padding: 2vh 8vw 0;
+    padding: var(--space-2) 8vw 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -109,7 +117,7 @@
 
   .pov__thesis,
   .pov__caption {
-    margin-top: 1.5rem;
+    margin-top: var(--space-4);
     color: #fff;
     mix-blend-mode: difference;
     text-align: center;
@@ -127,7 +135,7 @@
 
   .proof {
     min-height: auto;
-    padding: 60px 8vw 0;
+    padding: var(--space-8) 8vw 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -141,8 +149,8 @@
     margin-left: auto;
     margin-right: auto;
     gap: 32px;
-    margin-top: 120px;
-    margin-bottom: 100px;
+    margin-top: var(--space-16);
+    margin-bottom: var(--space-12);
   }
 
   .divider-line {
@@ -215,7 +223,7 @@
   }
 
   .proof__meta {
-    margin-top: 1.5rem;
+    margin-top: var(--space-4);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -259,7 +267,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 80px 8vw 0;
+    padding: var(--space-12) 8vw 0;
     text-align: center;
     overflow: hidden;
   }
@@ -273,7 +281,7 @@
   }
 
   .thesis__body {
-    margin-top: 3rem;
+    margin-top: var(--space-8);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -301,7 +309,7 @@
 
   .contact {
     min-height: 100vh;
-    padding: 200px 8vw 120px;
+    padding: var(--space-24) 8vw var(--space-16);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -315,7 +323,7 @@
   }
 
   .contact__headline {
-    margin-top: 80px;
+    margin-top: var(--space-12);
     max-width: 900px;
     font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 600;
@@ -327,7 +335,7 @@
   }
 
   .contact__columns {
-    margin-top: 60px;
+    margin-top: var(--space-8);
     display: flex;
     gap: 4rem;
     opacity: 0;
@@ -347,7 +355,7 @@
   }
 
   .contact__studies {
-    margin-top: 0.75rem;
+    margin-top: var(--space-2);
     font-size: 1rem;
     font-weight: 400;
     color: #888888;
@@ -389,7 +397,7 @@
   }
 
   .contact__footer {
-    margin-top: 80px;
+    margin-top: var(--space-12);
     font-size: 0.85rem;
     color: #888888;
     text-align: left;
