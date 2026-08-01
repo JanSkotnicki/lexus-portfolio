@@ -568,21 +568,68 @@
       ease: "power2.out"
     });
 
-    // Single timeline owns body backgroundColor end-to-end so the two
-    // color transitions can't stomp on each other's rest state.
-    const bgTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".pov",
-        start: "top 80%",
-        endTrigger: ".proof",
-        end: "top 20%",
-        scrub: true
-      }
+    // gsap.matchMedia() scopes body backgroundColor transitions per breakpoint.
+    // Desktop keeps the original POV<->Proof white/black/white sweep and the
+    // Contact fade exactly as before (byte-identical values, just gated).
+    // Mobile gets its own sequence written with fromTo() so backgroundColor
+    // has an explicit value on both ends of every tween — that's what makes
+    // scrolling back up restore the correct color instead of sticking grey.
+    const bgMM = gsap.matchMedia();
+
+    bgMM.add("(min-width: 768px)", () => {
+      // Single timeline owns body backgroundColor end-to-end so the two
+      // color transitions can't stomp on each other's rest state.
+      const bgTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".pov",
+          start: "top 80%",
+          endTrigger: ".proof",
+          end: "top 20%",
+          scrub: true
+        }
+      });
+
+      bgTimeline
+        .fromTo("body", { backgroundColor: "#ffffff" }, { backgroundColor: "#000000", ease: "none", duration: 0.6 })
+        .to("body", { backgroundColor: "#ffffff", ease: "none", duration: 0.6 }, "+=0.4");
+
+      gsap.to("body", {
+        backgroundColor: "#0a0a0a",
+        scrollTrigger: {
+          trigger: ".contact",
+          start: "top 40%",
+          end: "top -10%",
+          scrub: true
+        }
+      });
     });
 
-    bgTimeline
-      .fromTo("body", { backgroundColor: "#ffffff" }, { backgroundColor: "#000000", ease: "none", duration: 0.6 })
-      .to("body", { backgroundColor: "#ffffff", ease: "none", duration: 0.6 }, "+=0.4");
+    bgMM.add("(max-width: 767px)", () => {
+      // POV stays white on mobile — no transition here.
+      gsap.fromTo("body",
+        { backgroundColor: "#ffffff" },
+        {
+          backgroundColor: "#0a0a0a",
+          scrollTrigger: { trigger: ".proof", start: "top 70%", end: "top 20%", scrub: true }
+        }
+      );
+
+      gsap.fromTo("body",
+        { backgroundColor: "#0a0a0a" },
+        {
+          backgroundColor: "#ffffff",
+          scrollTrigger: { trigger: ".thesis", start: "top 70%", end: "top 20%", scrub: true }
+        }
+      );
+
+      gsap.fromTo("body",
+        { backgroundColor: "#ffffff" },
+        {
+          backgroundColor: "#0a0a0a",
+          scrollTrigger: { trigger: ".contact", start: "top 60%", end: "top 10%", scrub: true }
+        }
+      );
+    });
 
     // gsap.matchMedia() scopes the pinned Thesis timeline to desktop only.
     // Mobile browsers resize the viewport mid-scroll (address bar hide/show),
@@ -627,16 +674,6 @@
           }
         });
       });
-    });
-
-    gsap.to("body", {
-      backgroundColor: "#0a0a0a",
-      scrollTrigger: {
-        trigger: ".contact",
-        start: "top 40%",
-        end: "top -10%",
-        scrub: true
-      }
     });
 
     const contactTl = gsap.timeline({
