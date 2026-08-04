@@ -836,6 +836,13 @@
     // last paragraph's own tween's ScrollTrigger end. This setup has to run
     // (and populate these) before the background color system below reads
     // them.
+    //
+    // Reveal-complete alone still cuts it close, so darkening additionally
+    // waits for THESIS_BREATHING_ROOM px of extra scroll past that point —
+    // by then the (already fully revealed, static) paragraph has scrolled
+    // that much further up, leaving that much clear white space below it —
+    // before the Contact-darkening progress starts climbing from 0.
+    const THESIS_BREATHING_ROOM = 250;
     let thesisTl;
     let lastParaRevealST;
 
@@ -899,7 +906,7 @@
         [() => povST.end, BLACK],
         [() => proofST.start, BLACK],
         [() => proofST.end, WHITE],
-        [() => thesisTl.scrollTrigger.end, WHITE],
+        [() => thesisTl.scrollTrigger.end + THESIS_BREATHING_ROOM, WHITE],
         [() => contactST.end, DARK]
       ]);
     });
@@ -918,7 +925,7 @@
         [() => proofST.end, DARK],
         [() => thesisST.start, DARK],
         [() => thesisST.end, WHITE],
-        [() => lastParaRevealST.end, WHITE],
+        [() => lastParaRevealST.end + THESIS_BREATHING_ROOM, WHITE],
         [() => contactST.end, DARK]
       ]);
     });
@@ -945,13 +952,40 @@
     const navClose = document.getElementById("navClose");
 
     // Anchor scrolling goes through ScrollToPlugin instead of native anchor
-    // scroll / scrollIntoView so we can offset for the fixed nav and, for
-    // POV/Proof, push further down so the image tiles land closer to the
-    // vertical center of the viewport instead of hugging the top edge.
-    const navScrollOffsets = { pov: 220, proof: 220, thesis: 100, contact: 100 };
+    // scroll / scrollIntoView so we can offset for the fixed nav. Thesis and
+    // Contact just want breathing room under the nav, so a fixed offset on
+    // the section is fine. POV and Proof are tiles, though, and the useful
+    // reference point there is the actual image, not the section box — so
+    // for those two the target is computed from the image's own
+    // getBoundingClientRect() at click time: land the image's vertical
+    // center in the middle of the viewport area below the fixed nav (not a
+    // hardcoded px offset, so it stays correct at any screen height/nav
+    // height, including mobile).
+    const navScrollOffsets = { thesis: 100, contact: 100 };
+    const imageAnchorSelectors = { pov: ".pov__frame img", proof: ".proof__frame img" };
+
+    function scrollToImageCenter(img) {
+      const navHeight = navEl.getBoundingClientRect().height;
+      const rect = img.getBoundingClientRect();
+      const imageCenterDocY = rect.top + window.scrollY + rect.height / 2;
+      const visibleHeight = window.innerHeight - navHeight;
+      const targetY = imageCenterDocY - (navHeight + visibleHeight / 2);
+      gsap.to(window, {
+        duration: 1,
+        scrollTo: { y: Math.max(0, targetY) },
+        ease: "power2.inOut"
+      });
+    }
 
     function scrollToTarget(hash) {
-      const offsetY = navScrollOffsets[hash.replace("#", "")] ?? 100;
+      const id = hash.replace("#", "");
+      const imageSelector = imageAnchorSelectors[id];
+      const img = imageSelector && document.querySelector(imageSelector);
+      if (img) {
+        scrollToImageCenter(img);
+        return;
+      }
+      const offsetY = navScrollOffsets[id] ?? 100;
       gsap.to(window, {
         duration: 1,
         scrollTo: { y: hash, offsetY },
