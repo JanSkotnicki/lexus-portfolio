@@ -130,6 +130,23 @@ default):
   subpage adds itself to nav.
 - One CTA per page.
 - Contact remains a section on `/` only — never its own subpage.
+- **Nav is static, not fixed, on every reading subpage** (`/case-study/*`
+  and `/approach` alike — anything meant to be read top to bottom as a
+  document, not just `/case-study/golf`). Design reasoning: a case study
+  (or the thesis expansion) should read like a document, not a site with a
+  menu — a nav that stays on screen through the whole read is a standing
+  invitation to leave. Concretely, on these pages:
+  - `.nav` gets `position: static` (index.html's nav stays `fixed` —
+    unchanged, home page only).
+  - No fixed-nav compensations: no extra top padding/`min-height` on the
+    hero to clear a nav that no longer overlays, no `scroll-margin`. Adding
+    any of these back on a static nav produces genuine dead space at the
+    top of the page — check for that specifically after building the hero.
+  - Since nav scrolls away, the page needs its own visible way back: a
+    footer back-link (`.case-footer-nav` → `.case-back`, sized up from the
+    header one, e.g. `1.125rem`) after the final CTA is the only
+    navigational element while reading, and must read as clearly
+    intentional, not a small utility afterthought.
 
 ## D. Technical rules
 

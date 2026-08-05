@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lexus Portfolio</title>
+<script>
+  // Arriving from a subpage link like /case-study/golf/#contact: hide the
+  // page and cancel the browser's native, instant hash-jump before any of
+  // it paints. Runs inline in <head>, before the GSAP <script src> tags at
+  // the bottom of <body> even start downloading, so there's no window
+  // where the native jump (wrong scroll position, default white bg) is
+  // visible while those load. The bottom script un-hides once it has
+  // jumped to the real target and synced the bg color system to it.
+  if (["#pov", "#proof", "#thesis", "#contact"].includes(location.hash)) {
+    document.documentElement.style.visibility = "hidden";
+    window.scrollTo(0, 0);
+  }
+</script>
 <style>
   :root {
     --headline-size: clamp(2.25rem, 7vw, 6.5rem);
@@ -675,7 +688,7 @@
 
   <section class="proof" id="proof">
     <div class="proof__grid">
-      <a class="proof__item" href="#">
+      <a class="proof__item" href="/case-study/golf/">
         <div class="proof__frame">
           <img class="proof__img--golf" src="images/lexus-golf.jpg" alt="Golf Tournament case study">
         </div>
@@ -747,12 +760,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
   <script>
-    // Arriving from a subpage link like /case-study/golf/#proof: cancel the
-    // browser's native, instant hash-jump so the smooth scrollToTarget()
-    // call below (on window load) is the only thing that moves the page.
-    if (["#pov", "#proof", "#thesis", "#contact"].includes(location.hash)) {
-      window.scrollTo(0, 0);
-    }
+    // The head-inline script already hid the page and cancelled the native
+    // hash-jump for this same set of ids (see <head>) — this just re-derives
+    // the same check to gate the load-handler further down that does the
+    // real jump and un-hides.
+    const isHashEntry = ["#pov", "#proof", "#thesis", "#contact"].includes(location.hash);
 
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -971,31 +983,28 @@
     const navScrollOffsets = { thesis: 100, contact: 100 };
     const imageAnchorSelectors = { pov: ".pov__frame img", proof: ".proof__frame img" };
 
-    function scrollToImageCenter(img) {
-      const navHeight = navEl.getBoundingClientRect().height;
-      const rect = img.getBoundingClientRect();
-      const imageCenterDocY = rect.top + window.scrollY + rect.height / 2;
-      const visibleHeight = window.innerHeight - navHeight;
-      const targetY = imageCenterDocY - (navHeight + visibleHeight / 2);
-      gsap.to(window, {
-        duration: 1,
-        scrollTo: { y: Math.max(0, targetY) },
-        ease: "power2.inOut"
-      });
-    }
-
-    function scrollToTarget(hash) {
+    // Shared by the animated (click) and instant (hash-on-load) paths below,
+    // so both land on exactly the same pixel.
+    function getTargetY(hash) {
       const id = hash.replace("#", "");
       const imageSelector = imageAnchorSelectors[id];
       const img = imageSelector && document.querySelector(imageSelector);
       if (img) {
-        scrollToImageCenter(img);
-        return;
+        const navHeight = navEl.getBoundingClientRect().height;
+        const rect = img.getBoundingClientRect();
+        const imageCenterDocY = rect.top + window.scrollY + rect.height / 2;
+        const visibleHeight = window.innerHeight - navHeight;
+        return Math.max(0, imageCenterDocY - (navHeight + visibleHeight / 2));
       }
       const offsetY = navScrollOffsets[id] ?? 100;
+      const el = document.querySelector(hash);
+      return Math.max(0, el.getBoundingClientRect().top + window.scrollY - offsetY);
+    }
+
+    function scrollToTarget(hash) {
       gsap.to(window, {
         duration: 1,
-        scrollTo: { y: hash, offsetY },
+        scrollTo: { y: getTargetY(hash) },
         ease: "power2.inOut"
       });
     }
@@ -1034,8 +1043,32 @@
 
     window.addEventListener("load", () => ScrollTrigger.refresh());
 
-    if (location.hash) {
-      window.addEventListener("load", () => scrollToTarget(location.hash));
+    if (isHashEntry) {
+      window.addEventListener("load", () => {
+        // Refresh first so every trigger's start/end reflects final,
+        // post-image-load layout — getTargetY() and the bg color system
+        // both read those boundaries, and both need the real numbers
+        // before the jump, not the pre-load estimate.
+        ScrollTrigger.refresh();
+
+        // #contact is the last section: landing there on initial entry
+        // should mean the literal bottom of the document (full DARK,
+        // contactST.end), not the nav-offset position used for in-page
+        // clicks — that position sits ~100px short of the end, which
+        // reads as an unfinished, still-transitioning gray background.
+        const targetY = location.hash === "#contact"
+          ? Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+          : getTargetY(location.hash);
+
+        window.scrollTo(0, targetY);
+        // Force the scrub-driven bg color system (and .nav--light) to
+        // recompute for the new scroll position synchronously, instead of
+        // waiting for its own scroll-event-driven update on the next frame
+        // — that's what removes the gray/white flash before the correct
+        // dark background appears.
+        ScrollTrigger.update();
+        document.documentElement.style.visibility = "";
+      });
     }
   </script>
 </body>

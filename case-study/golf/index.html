@@ -6,7 +6,7 @@
 <title>Golf Tournament — Case Study | Jan Skotnicki</title>
 <style>
   :root {
-    --headline-size: clamp(2.25rem, 7vw, 6.5rem);
+    --headline-size: clamp(2.25rem, 6vw, 6.5rem);
     --caption-size: calc(var(--headline-size) / 5.5);
     --headline-statement: clamp(2rem, 5vw, 3.5rem);
 
@@ -35,21 +35,22 @@
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 
-  /* Nav — identical to index.html. This page's background never changes,
-     so the --light modifier is never toggled: nav stays in its default
-     dark-on-light state throughout. */
+  /* Nav — static, not fixed, on case-study/reading subpages (unlike
+     index.html, where it stays fixed). A case study is meant to read like
+     a document from start to finish, not a site with a menu always on
+     screen — a persistently visible nav mid-read is an invitation to
+     leave. It scrolls away with the content; the footer back-link (see
+     .case-footer-nav) is the only navigational element while reading. */
   .nav {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: static;
     width: 100%;
-    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 20px clamp(24px, 4vw, 32px);
     background: transparent;
     color: #111111;
+    transition: color 0.3s ease;
   }
 
   .nav__logo {
@@ -59,6 +60,7 @@
     color: inherit;
     text-decoration: none;
     cursor: pointer;
+    transition: color 0.3s ease;
   }
 
   .nav__links {
@@ -72,7 +74,7 @@
     font-size: 0.95rem;
     font-weight: 500;
     letter-spacing: -0.01em;
-    transition: opacity 0.2s ease;
+    transition: color 0.3s ease, opacity 0.2s ease;
   }
 
   .nav__link:hover {
@@ -192,14 +194,21 @@
     opacity: 0.7;
   }
 
-  /* Hero — identical building blocks to .hero on index.html. */
+  /* Hero — same building blocks as .hero on index.html, minus min-height:
+     100vh. Nav is static here (see above), so it now takes real space at
+     the top of the document instead of overlaying — a full extra viewport
+     of hero on top of that would just be dead air before the back link.
+     justify-content:flex-end still holds: it keeps the gap to the image
+     that follows at a fixed --space-8, instead of one that varies with
+     viewport height (measured 90px–265px under plain :center). With no
+     min-height forcing extra box height, flex-end has no free space to
+     push upward as slack, so this now costs nothing extra at the top. */
   .case-hero {
     width: 100%;
-    min-height: 100vh;
     padding: var(--space-8) 8vw;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: flex-start;
   }
 
@@ -226,7 +235,8 @@
     line-height: 1.12;
     letter-spacing: -0.03em;
     text-align: left;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: break-word;
   }
 
   .hero__caption {
@@ -240,7 +250,6 @@
 
   @media (max-width: 600px) {
     .hero__line {
-      white-space: normal;
       letter-spacing: -0.02em;
     }
 
@@ -270,11 +279,13 @@
   }
 
   .divider-label {
-    flex: 0 0 auto;
-    font-size: 1.5rem;
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: clamp(1rem, 4vw, 1.5rem);
     letter-spacing: 0.25em;
     font-weight: 500;
     white-space: nowrap;
+    overflow-wrap: break-word;
   }
 
   /* Case body copy — same type tokens as .thesis__para (font-size, weight,
@@ -299,6 +310,32 @@
     line-height: 1.6;
     color: #111111;
     text-align: left;
+  }
+
+  /* Case media — same content-column width as .case-block__body, sharp
+     corners (no border-radius used anywhere else on this page). max-height
+     + object-fit keeps a single (portrait-source) photo from ever filling
+     the screen; no aspect-ratio lock, since these come in different
+     native ratios. */
+  .case-media {
+    max-width: 760px;
+    margin-bottom: var(--space-4);
+  }
+
+  /* Hero sits outside any .case-block, so it needs its own 8vw inset — on
+     a separate wrapper box, not the same one as max-width:760px, otherwise
+     box-sizing:border-box eats the padding out of the 760px column instead
+     of adding it, and the hero image ends up narrower than the other three. */
+  .case-media-wrap {
+    padding: 0 8vw;
+  }
+
+  .case-media img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: min(70vh, 640px);
+    object-fit: cover;
   }
 
   /* CTA — single call to action, styled with the same tokens as
@@ -335,9 +372,21 @@
     transform: translateX(4px);
   }
 
+  /* Footer back-link — the only navigational element while reading, now
+     that nav is static and scrolls away with the content (see .nav
+     above). Sized up from the header .case-back (0.95rem) to carry that
+     responsibility visibly, rather than reading as a small utility link. */
+  .case-footer-nav {
+    padding: 0 8vw var(--space-16);
+  }
+
+  .case-footer-nav .case-back {
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
   @media (max-width: 768px) {
     .case-hero {
-      min-height: auto;
       justify-content: flex-start;
       padding-top: 10vh;
       padding-bottom: 60px;
@@ -394,6 +443,12 @@
     <p class="hero__caption">Royal Kraków Golf & Country Club × Lexus — event marketing, premium automotive</p>
   </section>
 
+  <div class="case-media-wrap">
+    <div class="case-media">
+      <img src="../../images/golf/golf-hero-nx-flags.jpg" alt="Lexus NX parked at the golf club, with two branded Lexus flags standing beside it">
+    </div>
+  </div>
+
   <div class="section-divider">
     <span class="divider-line"></span>
     <span class="divider-label">Context</span>
@@ -414,6 +469,9 @@
   </div>
 
   <section class="case-block" id="on-the-ground">
+    <div class="case-media">
+      <img loading="lazy" src="../../images/golf/golf-deckchairs.jpg" alt="Row of black, Lexus-branded deck chairs set up on the clubhouse terrace">
+    </div>
     <div class="case-block__body">
       <p class="case-block__para">Cars stood at strategic points across the course and by the clubhouse — placed where players actually walked, not lined up in a row for photos.</p>
       <p class="case-block__para">Dealership staff worked the event without a sales script. No pitch, no forms to fill out to walk up and look at a car.</p>
@@ -429,6 +487,9 @@
   </div>
 
   <section class="case-block" id="problem">
+    <div class="case-media">
+      <img loading="lazy" src="../../images/golf/golf-players-green.jpg" alt="Golfers on the green near a sand bunker during the tournament">
+    </div>
     <div class="case-block__body">
       <p class="case-block__para">After the event, the dealer files a report. It counts what's countable: cars on site, test drives booked, leads collected.</p>
       <p class="case-block__para">It doesn't count the members who didn't take a test drive but noticed the car anyway. The regulars who've seen the Lexus cars at the club before and now expect them. The people playing a casual weekend round who are already the exact profile of buyer this brand wants — met on a day nobody was selling to them.</p>
@@ -443,6 +504,9 @@
   </div>
 
   <section class="case-block" id="omotenashi">
+    <div class="case-media">
+      <img loading="lazy" src="../../images/golf/golf-materials-table.jpg" alt="Lexus brochures, water bottles and a business card laid out on a table at the club">
+    </div>
     <div class="case-block__body">
       <p class="case-block__para">The absence of a sales pitch isn't the absence of a strategy. It is the strategy. Approaching a member mid-round to ask about a test drive would break the one thing the event actually offers: an afternoon where nobody wants anything from you.</p>
       <p class="case-block__para">This isn't built to convert a stranger in one afternoon. It's built to maintain a relationship with people who were already going to be there — club members worth more to the brand over time than one campaign to a cold audience for one weekend.</p>
@@ -468,6 +532,10 @@
     <p class="case-cta__line">This isn't a golf problem. It's a measurement problem.</p>
     <a class="case-cta__link" href="/#contact">Let's talk about measuring it →</a>
   </section>
+
+  <div class="case-footer-nav">
+    <a class="case-back" href="/#proof">← Back to Proof</a>
+  </div>
 
   <script>
     const navBurger = document.getElementById("navBurger");
