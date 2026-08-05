@@ -747,6 +747,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
   <script>
+    // Arriving from a subpage link like /case-study/golf/#proof: cancel the
+    // browser's native, instant hash-jump so the smooth scrollToTarget()
+    // call below (on window load) is the only thing that moves the page.
+    if (["#pov", "#proof", "#thesis", "#contact"].includes(location.hash)) {
+      window.scrollTo(0, 0);
+    }
+
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
     const navEl = document.getElementById("nav");
@@ -1026,6 +1033,10 @@
     ScrollTrigger.refresh();
 
     window.addEventListener("load", () => ScrollTrigger.refresh());
+
+    if (location.hash) {
+      window.addEventListener("load", () => scrollToTarget(location.hash));
+    }
   </script>
 </body>
 </html>

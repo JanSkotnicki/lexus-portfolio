@@ -146,3 +146,9 @@ default):
 3. Every change tested on `localhost` before push.
 4. One prompt = one system change — routing, content, and any animation
    proposal land as separate, reviewable steps, not bundled together.
+5. **No invented facts in case-study copy.** Never add numbers, dates,
+   durations, or specific details (years running, attendee counts, "the
+   Nth time," named amenities like a tent) that aren't in the source
+   material provided for that case study. If the tone needs a concrete
+   detail and none was given, ask — don't estimate or infer one. Applies
+   to every case study, not just Golf.
