@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lexus Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600&display=swap" rel="stylesheet">
 <script>
   // Arriving from a subpage link like /case-study/golf/#contact: hide the
   // page and cancel the browser's native, instant hash-jump before any of
@@ -19,6 +22,10 @@
 </script>
 <style>
   :root {
+    /* Display face for headlines (design-spec.md §1). Body copy stays on the
+       system stack below — only headings switch. */
+    --font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+
     --headline-size: clamp(2.25rem, 7vw, 6.5rem);
     --caption-size: calc(var(--headline-size) / 5.5);
     --headline-statement: clamp(2rem, 5vw, 3.5rem);
@@ -64,10 +71,11 @@
 
   .hero__line {
     display: block;
+    font-family: var(--font-display);
     font-size: var(--headline-size);
     font-weight: 600;
     line-height: 1.12;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     text-align: left;
     white-space: nowrap;
   }
@@ -84,7 +92,6 @@
   @media (max-width: 600px) {
     .hero__line {
       white-space: normal;
-      letter-spacing: -0.02em;
     }
 
     .hero__caption {
@@ -169,8 +176,12 @@
     opacity: 0.3;
   }
 
+  /* Section label takes the display face, but keeps its own 0.25em tracking
+     and weight 500 — the headline -0.02em would collapse the wide letter-
+     spacing that makes this read as a label rather than a headline. */
   .divider-label {
     flex: 0 0 auto;
+    font-family: var(--font-display);
     font-size: 1.5rem;
     letter-spacing: 0.25em;
     font-weight: 500;
@@ -283,10 +294,11 @@
 
   .thesis__headline {
     max-width: 900px;
+    font-family: var(--font-display);
     font-size: var(--headline-statement);
     font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.03em;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
   }
 
   .thesis__body {
@@ -334,10 +346,11 @@
   .contact__headline {
     margin-top: var(--space-12);
     max-width: 900px;
+    font-family: var(--font-display);
     font-size: var(--headline-statement);
     font-weight: 600;
     line-height: 1.12;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     text-align: left;
     opacity: 0;
     transform: translateY(30px);
@@ -357,9 +370,11 @@
   }
 
   .contact__name {
+    font-family: var(--font-display);
     font-size: clamp(1.5rem, 3vw, 2.25rem);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
     text-align: left;
   }
 
@@ -542,8 +557,10 @@
   .nav-mobile__link {
     color: inherit;
     text-decoration: none;
+    font-family: var(--font-display);
     font-size: 2rem;
     font-weight: 600;
+    line-height: 1.12;
     letter-spacing: -0.02em;
   }
 

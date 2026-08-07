@@ -4,8 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Golf Tournament — Case Study | Jan Skotnicki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600&display=swap" rel="stylesheet">
 <style>
   :root {
+    /* Display face for headlines (design-spec.md §1). Body copy stays on the
+       system stack below — only headings switch. */
+    --font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+
     --headline-size: clamp(2.25rem, 6vw, 6.5rem);
     --caption-size: calc(var(--headline-size) / 5.5);
     --headline-statement: clamp(2rem, 5vw, 3.5rem);
@@ -130,8 +137,10 @@
   .nav-mobile__link {
     color: inherit;
     text-decoration: none;
+    font-family: var(--font-display);
     font-size: 2rem;
     font-weight: 600;
+    line-height: 1.12;
     letter-spacing: -0.02em;
   }
 
@@ -194,26 +203,27 @@
     opacity: 0.7;
   }
 
-  /* Hero — same building blocks as .hero on index.html, minus min-height:
-     100vh. Nav is static here (see above), so it now takes real space at
-     the top of the document instead of overlaying — a full extra viewport
-     of hero on top of that would just be dead air before the back link.
-     justify-content:flex-end still holds: it keeps the gap to the image
-     that follows at a fixed --space-8, instead of one that varies with
-     viewport height (measured 90px–265px under plain :center). With no
-     min-height forcing extra box height, flex-end has no free space to
-     push upward as slack, so this now costs nothing extra at the top. */
+  /* Hero — text-led opening per design-spec.md §3: title, then a one-line
+     metadata row, then a centered intro in a narrower column. Nothing
+     visual sits beside the text; the hero image follows *below* the whole
+     block, as evidence for what the text has already claimed.
+     Nav is static here (see above), so it already takes real space at the
+     top of the document — the top padding is the hero's own air, not a
+     compensation for an overlaying nav. */
   .case-hero {
     width: 100%;
-    padding: var(--space-8) 8vw;
+    padding: var(--space-8) 8vw var(--space-12);
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
   }
 
+  /* Back link stays a left-aligned utility row — centering it would read as
+     part of the title block. */
   .case-hero__back {
-    margin-bottom: var(--space-8);
+    align-self: flex-start;
+    margin-bottom: var(--space-16);
   }
 
   .case-hero__eyebrow {
@@ -224,37 +234,91 @@
     margin-bottom: var(--space-4);
   }
 
-  .hero__headline {
+  /* Title column — full width of the content column (capped so it doesn't
+     sprawl on ultrawide), centered, with the metadata/intro nested under it
+     at progressively narrower widths. */
+  .case-hero__headline {
     display: block;
+    width: 100%;
+    max-width: 1100px;
   }
 
   .hero__line {
     display: block;
+    font-family: var(--font-display);
     font-size: var(--headline-size);
     font-weight: 600;
     line-height: 1.12;
-    letter-spacing: -0.03em;
-    text-align: left;
+    letter-spacing: -0.02em;
+    text-align: center;
     white-space: normal;
     overflow-wrap: break-word;
   }
 
-  .hero__caption {
+  /* Metadata — Client / Venue / Role on one line under the title. Wraps to
+     multiple rows only when the viewport can't hold it. */
+  .case-hero__meta {
     margin-top: var(--space-8);
-    font-size: var(--caption-size);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #6b6b6b;
+  }
+
+  .case-hero__meta-item {
+    white-space: nowrap;
+  }
+
+  .case-hero__meta-label {
+    opacity: 0.65;
+  }
+
+  .case-hero__meta-sep {
+    opacity: 0.4;
+  }
+
+  /* The one-line row needs ~1100px of viewport to hold all three pairs.
+     Below that it would wrap mid-row and strand a slash at the end of a
+     line, so stack the pairs instead and drop the separators — they only
+     do work while the items sit side by side. */
+  @media (max-width: 1100px) {
+    .case-hero__meta {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .case-hero__meta-sep {
+      display: none;
+    }
+  }
+
+  /* Intro — deliberately a narrower column than the title above it, so the
+     hero reads as a funnel from statement to explanation. */
+  .case-hero__intro {
+    margin-top: var(--space-8);
+    max-width: 640px;
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
     font-weight: 400;
+    line-height: 1.6;
     letter-spacing: 0.01em;
     color: #6b6b6b;
-    text-align: left;
+    text-align: center;
   }
 
   @media (max-width: 600px) {
-    .hero__line {
-      letter-spacing: -0.02em;
+    .case-hero__meta,
+    .case-hero__intro {
+      margin-top: 4vh;
     }
 
-    .hero__caption {
-      margin-top: 4vh;
+    .case-hero__meta-item {
+      white-space: normal;
     }
   }
 
@@ -278,9 +342,13 @@
     opacity: 0.3;
   }
 
+  /* Section label takes the display face, but keeps its own 0.25em tracking
+     and weight 500 — the headline -0.02em would collapse the wide letter-
+     spacing that makes this read as a label rather than a headline. */
   .divider-label {
     flex: 0 1 auto;
     min-width: 0;
+    font-family: var(--font-display);
     font-size: clamp(1rem, 4vw, 1.5rem);
     letter-spacing: 0.25em;
     font-weight: 500;
@@ -316,10 +384,13 @@
      corners (no border-radius used anywhere else on this page). max-height
      + object-fit keeps a single (portrait-source) photo from ever filling
      the screen; no aspect-ratio lock, since these come in different
-     native ratios. */
+     native ratios.
+     Margin is on the *top*: per design-spec.md §3 every photo follows the
+     text it belongs to, so the gap it owns is the one separating it from
+     that text, not from whatever comes after. */
   .case-media {
     max-width: 760px;
-    margin-bottom: var(--space-4);
+    margin-top: var(--space-8);
   }
 
   /* Hero sits outside any .case-block, so it needs its own 8vw inset — on
@@ -350,10 +421,11 @@
 
   .case-cta__line {
     max-width: 700px;
+    font-family: var(--font-display);
     font-size: var(--headline-statement);
     font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.03em;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
   }
 
   .case-cta__link {
@@ -387,9 +459,12 @@
 
   @media (max-width: 768px) {
     .case-hero {
-      justify-content: flex-start;
-      padding-top: 10vh;
+      padding-top: var(--space-4);
       padding-bottom: 60px;
+    }
+
+    .case-hero__back {
+      margin-bottom: var(--space-8);
     }
 
     .section-divider {
@@ -435,12 +510,19 @@
   <section class="case-hero">
     <a class="case-back case-hero__back" href="/#proof">← Back to Proof</a>
     <p class="case-hero__eyebrow">Case Study</p>
-    <h1 class="hero__headline">
+    <h1 class="case-hero__headline">
       <span class="hero__line">Same tournament, every season.</span>
       <span class="hero__line">Same guests on the fairway.</span>
       <span class="hero__line">No line for it in the report.</span>
     </h1>
-    <p class="hero__caption">Royal Kraków Golf & Country Club × Lexus — event marketing, premium automotive</p>
+    <p class="case-hero__meta">
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Client</span> Lexus Kraków-Zakopiańska</span>
+      <span class="case-hero__meta-sep" aria-hidden="true">/</span>
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Venue</span> Royal Kraków Golf &amp; Country Club</span>
+      <span class="case-hero__meta-sep" aria-hidden="true">/</span>
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Role</span> Event marketing, CRM</span>
+    </p>
+    <p class="case-hero__intro">Royal Kraków Golf &amp; Country Club × Lexus — event marketing, premium automotive</p>
   </section>
 
   <div class="case-media-wrap">
@@ -469,14 +551,14 @@
   </div>
 
   <section class="case-block" id="on-the-ground">
-    <div class="case-media">
-      <img loading="lazy" src="../../images/golf/golf-deckchairs.jpg" alt="Row of black, Lexus-branded deck chairs set up on the clubhouse terrace">
-    </div>
     <div class="case-block__body">
       <p class="case-block__para">Cars stood at strategic points across the course and by the clubhouse — placed where players actually walked, not lined up in a row for photos.</p>
       <p class="case-block__para">Dealership staff worked the event without a sales script. No pitch, no forms to fill out to walk up and look at a car.</p>
       <p class="case-block__para">A test drive was there for anyone who asked. Nobody was asked if they wanted one.</p>
       <p class="case-block__para">And when the trophies were handed out, Lexus people were part of that ceremony — not spectators standing at the edge of it.</p>
+    </div>
+    <div class="case-media">
+      <img loading="lazy" src="../../images/golf/golf-deckchairs.jpg" alt="Row of black, Lexus-branded deck chairs set up on the clubhouse terrace">
     </div>
   </section>
 
@@ -487,13 +569,13 @@
   </div>
 
   <section class="case-block" id="problem">
-    <div class="case-media">
-      <img loading="lazy" src="../../images/golf/golf-players-green.jpg" alt="Golfers on the green near a sand bunker during the tournament">
-    </div>
     <div class="case-block__body">
       <p class="case-block__para">After the event, the dealer files a report. It counts what's countable: cars on site, test drives booked, leads collected.</p>
       <p class="case-block__para">It doesn't count the members who didn't take a test drive but noticed the car anyway. The regulars who've seen the Lexus cars at the club before and now expect them. The people playing a casual weekend round who are already the exact profile of buyer this brand wants — met on a day nobody was selling to them.</p>
       <p class="case-block__para">None of that fits in a spreadsheet. So none of it makes it to the next planning meeting.</p>
+    </div>
+    <div class="case-media">
+      <img loading="lazy" src="../../images/golf/golf-players-green.jpg" alt="Golfers on the green near a sand bunker during the tournament">
     </div>
   </section>
 
@@ -504,13 +586,13 @@
   </div>
 
   <section class="case-block" id="omotenashi">
-    <div class="case-media">
-      <img loading="lazy" src="../../images/golf/golf-materials-table.jpg" alt="Lexus brochures, water bottles and a business card laid out on a table at the club">
-    </div>
     <div class="case-block__body">
       <p class="case-block__para">The absence of a sales pitch isn't the absence of a strategy. It is the strategy. Approaching a member mid-round to ask about a test drive would break the one thing the event actually offers: an afternoon where nobody wants anything from you.</p>
       <p class="case-block__para">This isn't built to convert a stranger in one afternoon. It's built to maintain a relationship with people who were already going to be there — club members worth more to the brand over time than one campaign to a cold audience for one weekend.</p>
       <p class="case-block__para">And because it's the same tournament, the same course, often the same faces, the value compounds. A guest who keeps seeing the Lexus cars at the club carries a different relationship with the brand than one who saw them once. A report built to describe one event has no field for recurrence at all.</p>
+    </div>
+    <div class="case-media">
+      <img loading="lazy" src="../../images/golf/golf-materials-table.jpg" alt="Lexus brochures, water bottles and a business card laid out on a table at the club">
     </div>
   </section>
 
