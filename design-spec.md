@@ -28,4 +28,13 @@
 - kolejność i rozkład sekcji na stronie głównej
 - układ kafelków w sekcji Proof
 - treść tekstowa wszystkich stron
-- system tła `makeBgColorSystem`
+
+## System tła
+
+Jedno przejście na całej stronie: `#F4F2ED` od Hero przez POV, Proof i Thesis,
+potem zejście do ciemnego (`#0a0a0a`) w Contact. Dawne przejścia przy sekcji
+POV (jasne→czarne, czarne→jasne przy Proof) zostały usunięte w Fazie 1.
+
+`makeBgColorSystem` pozostaje jedynym miejscem, które zapisuje
+`body.style.backgroundColor` — nowe przejście dokłada stop do istniejącej
+tablicy, nie tworzy drugiego ScrollTriggera (szczegóły: architecture-v2.md).

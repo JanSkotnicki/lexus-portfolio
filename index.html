@@ -50,7 +50,7 @@
   }
 
   body {
-    background: #ffffff;
+    background: #F4F2ED;
     color: #111111;
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
@@ -134,8 +134,7 @@
   .pov__thesis,
   .pov__caption {
     margin-top: var(--space-4);
-    color: #fff;
-    mix-blend-mode: difference;
+    color: #1A1917;
     text-align: center;
     font-size: 1rem;
     font-weight: 500;
@@ -251,8 +250,7 @@
   }
 
   .proof__title {
-    color: #fff;
-    mix-blend-mode: difference;
+    color: #1A1917;
     text-align: center;
     font-size: 1rem;
     font-weight: 500;
@@ -261,8 +259,7 @@
   }
 
   .proof__link {
-    color: #fff;
-    mix-blend-mode: difference;
+    color: #1A1917;
     text-align: center;
     font-size: 0.8rem;
     font-weight: 400;
@@ -444,6 +441,9 @@
     }
   }
 
+  /* The nav carries its own surface now: solid #F4F2ED with a 1px frame all
+     the way around the bar. That's what makes it readable over any section
+     without mix-blend-mode tricks or a text-color flip. */
   .nav {
     position: fixed;
     top: 0;
@@ -454,13 +454,17 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px clamp(24px, 4vw, 32px);
-    background: transparent;
-    color: #111111;
-    transition: color 0.3s ease;
+    background: #F4F2ED;
+    border: 1px solid #1A1917;
+    color: #1A1917;
+    transition: transform 0.4s ease;
   }
 
-  .nav--light {
-    color: #ffffff;
+  /* Scroll-direction auto-hide (see the ScrollTrigger in <script>). Pure
+     transform — the bar slides out of frame, nothing below it reflows. The
+     extra 2px takes the border past the viewport edge too. */
+  .nav--hidden {
+    transform: translateY(calc(-100% - 2px));
   }
 
   .nav__logo {
@@ -470,12 +474,12 @@
     color: inherit;
     text-decoration: none;
     cursor: pointer;
-    transition: color 0.3s ease;
   }
 
   .nav__links {
     display: flex;
-    gap: 2.5rem;
+    align-items: center;
+    gap: 1rem;
   }
 
   .nav__link {
@@ -484,7 +488,16 @@
     font-size: 0.95rem;
     font-weight: 500;
     letter-spacing: -0.01em;
-    transition: color 0.3s ease, opacity 0.2s ease;
+    transition: opacity 0.2s ease;
+  }
+
+  /* Separators are their own elements rather than ::before on the links, so
+     they stay outside the links' hit area and out of the hover state. */
+  .nav__sep {
+    color: #6B6862;
+    font-size: 0.95rem;
+    font-weight: 400;
+    user-select: none;
   }
 
   .nav__link:hover {
@@ -513,17 +526,6 @@
     transition: background-color 0.3s ease;
   }
 
-  /* Explicit color rules (not just currentColor/inherit) so every nav
-     element is guaranteed to flip, regardless of cascade order. */
-  .nav--light .nav__logo,
-  .nav--light .nav__link {
-    color: #ffffff;
-  }
-
-  .nav--light .nav__burger span {
-    background-color: #ffffff;
-  }
-
   .nav-mobile {
     position: fixed;
     inset: 0;
@@ -549,9 +551,11 @@
     pointer-events: auto;
   }
 
+  /* The overlay is always light now that the nav itself is (it used to mirror
+     whatever .nav--light said about the section behind the bar). */
   .nav-mobile--light {
-    background: #ffffff;
-    color: #111111;
+    background: #F4F2ED;
+    color: #1A1917;
   }
 
   .nav-mobile__link {
@@ -649,8 +653,11 @@
     <a href="#" class="nav__logo" id="navLogo">Jan Skotnicki</a>
     <div class="nav__links">
       <a href="#pov" class="nav__link">Point of View</a>
+      <span class="nav__sep" aria-hidden="true">|</span>
       <a href="#proof" class="nav__link">Proof</a>
+      <span class="nav__sep" aria-hidden="true">|</span>
       <a href="#thesis" class="nav__link">Thesis</a>
+      <span class="nav__sep" aria-hidden="true">|</span>
       <a href="#contact" class="nav__link">Contact</a>
     </div>
     <button class="nav__burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
@@ -801,15 +808,15 @@
     // linear interpolation between color "stops" pinned to each section's
     // real start/end (ScrollTrigger's own "top top"/"bottom top" pixel
     // values, which are recalculated on every refresh — so they track actual
-    // section height instead of hardcoded viewport percentages that could
-    // drift apart, e.g. previously POV's own "bottom top" and Proof's
-    // "top bottom" start didn't line up and the two scrubbed tweens fought
-    // over backgroundColor). Consecutive stops that share a color simply
-    // hold that color across any gap (dividers, padding) between sections.
-    // .nav--light is derived from the same interpolated color's luminance
-    // in this one onUpdate — no separate onEnter/onLeaveBack bookkeeping.
-    const WHITE = [255, 255, 255];
-    const BLACK = [0, 0, 0];
+    // section height instead of hardcoded viewport percentages). Consecutive
+    // stops that share a color simply hold that color across any gap
+    // (dividers, padding) between sections.
+    //
+    // The page now holds one single background transition: PAPER from Hero
+    // all the way through Thesis, then down to DARK for Contact. The old
+    // POV-driven light→black→light swing is gone, and with it the reason
+    // for a nav color flip — the nav owns its own background (see .nav).
+    const PAPER = [244, 242, 237]; // #F4F2ED
     const DARK = [10, 10, 10]; // #0a0a0a
 
     function lerpColor(a, b, t) {
@@ -818,10 +825,6 @@
         Math.round(a[1] + (b[1] - a[1]) * t),
         Math.round(a[2] + (b[2] - a[2]) * t)
       ];
-    }
-
-    function luminance([r, g, b]) {
-      return 0.299 * r + 0.587 * g + 0.114 * b;
     }
 
     // stops: array of [() => y, [r,g,b]], sorted ascending by y at read time.
@@ -849,7 +852,6 @@
       function update() {
         const [r, g, b] = colorAtY(window.scrollY);
         document.body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-        navEl.classList.toggle("nav--light", luminance([r, g, b]) < 128);
       }
 
       ScrollTrigger.create({ start: 0, end: "max", scrub: true, onUpdate: update, onRefresh: update });
@@ -932,36 +934,21 @@
     const bgMM = gsap.matchMedia();
 
     bgMM.add("(min-width: 768px)", () => {
-      const povST = ScrollTrigger.create({ trigger: ".pov", start: "top bottom", end: "bottom bottom" });
-      const proofST = ScrollTrigger.create({ trigger: ".proof", start: "top bottom", end: "bottom bottom" });
       const contactST = ScrollTrigger.create({ trigger: ".contact", start: "top bottom", end: "bottom bottom" });
 
       makeBgColorSystem([
-        [() => 0, WHITE],
-        [() => povST.start, WHITE],
-        [() => povST.end, BLACK],
-        [() => proofST.start, BLACK],
-        [() => proofST.end, WHITE],
-        [() => thesisTl.scrollTrigger.end + THESIS_BREATHING_ROOM, WHITE],
+        [() => 0, PAPER],
+        [() => thesisTl.scrollTrigger.end + THESIS_BREATHING_ROOM, PAPER],
         [() => contactST.end, DARK]
       ]);
     });
 
     bgMM.add("(max-width: 767px)", () => {
-      const povST = ScrollTrigger.create({ trigger: ".pov", start: "top bottom", end: "bottom bottom" });
-      const proofST = ScrollTrigger.create({ trigger: ".proof", start: "top bottom", end: "bottom bottom" });
-      const thesisST = ScrollTrigger.create({ trigger: ".thesis", start: "top bottom", end: "bottom bottom" });
       const contactST = ScrollTrigger.create({ trigger: ".contact", start: "top bottom", end: "bottom bottom" });
 
       makeBgColorSystem([
-        [() => 0, WHITE],
-        [() => povST.start, WHITE],
-        [() => povST.end, WHITE], // POV stays white on mobile — no transition here.
-        [() => proofST.start, WHITE],
-        [() => proofST.end, DARK],
-        [() => thesisST.start, DARK],
-        [() => thesisST.end, WHITE],
-        [() => lastParaRevealST.end + THESIS_BREATHING_ROOM, WHITE],
+        [() => 0, PAPER],
+        [() => lastParaRevealST.end + THESIS_BREATHING_ROOM, PAPER],
         [() => contactST.end, DARK]
       ]);
     });
@@ -986,6 +973,32 @@
     const navBurger = document.getElementById("navBurger");
     const navMobile = document.getElementById("navMobile");
     const navClose = document.getElementById("navClose");
+
+    // Nav auto-hide: slides away on scroll down, comes back on scroll up.
+    // Driven by ScrollTrigger's own direction flag (1 = down, -1 = up) rather
+    // than a hand-rolled scroll listener, so it reads the same scroll
+    // bookkeeping as everything else here. Two cases keep the bar pinned open:
+    // the top of the page (nothing to get out of the way of yet), and a
+    // programmatic anchor scroll — a nav click scrolls down, and the bar
+    // sliding out from under the cursor mid-click reads as a glitch.
+    const NAV_HIDE_AFTER = 120;
+    let isProgrammaticScroll = false;
+
+    // scrub: true for the same reason the bg system uses it — a trigger-less
+    // ScrollTrigger with no animation attached doesn't call onUpdate on plain
+    // scroll without it.
+    ScrollTrigger.create({
+      start: 0,
+      end: "max",
+      scrub: true,
+      onUpdate: (self) => {
+        if (isProgrammaticScroll || window.scrollY < NAV_HIDE_AFTER) {
+          navEl.classList.remove("nav--hidden");
+          return;
+        }
+        navEl.classList.toggle("nav--hidden", self.direction === 1);
+      }
+    });
 
     // Anchor scrolling goes through ScrollToPlugin instead of native anchor
     // scroll / scrollIntoView so we can offset for the fixed nav. Thesis and
@@ -1022,7 +1035,9 @@
       gsap.to(window, {
         duration: 1,
         scrollTo: { y: getTargetY(hash) },
-        ease: "power2.inOut"
+        ease: "power2.inOut",
+        onStart: () => { isProgrammaticScroll = true; },
+        onComplete: () => { isProgrammaticScroll = false; }
       });
     }
 
@@ -1032,7 +1047,9 @@
     });
 
     function openMobileMenu() {
-      navMobile.classList.toggle("nav-mobile--light", !navEl.classList.contains("nav--light"));
+      // Always light: the overlay used to mirror the nav's color flip, which
+      // no longer exists now that the nav carries its own light surface.
+      navMobile.classList.add("nav-mobile--light");
       navMobile.classList.add("is-open");
       navBurger.setAttribute("aria-expanded", "true");
       document.body.style.overflow = "hidden";
@@ -1078,8 +1095,8 @@
           : getTargetY(location.hash);
 
         window.scrollTo(0, targetY);
-        // Force the scrub-driven bg color system (and .nav--light) to
-        // recompute for the new scroll position synchronously, instead of
+        // Force the scrub-driven bg color system to recompute for the
+        // new scroll position synchronously, instead of
         // waiting for its own scroll-event-driven update on the next frame
         // — that's what removes the gray/white flash before the correct
         // dark background appears.

@@ -17,17 +17,23 @@ the routing/flow rules for the pages we're about to add.
 | `--caption-size` | `--headline-size / 5.5`, weight 400, color `#6b6b6b` | `.hero__caption` |
 | `--headline-statement` | `clamp(2rem, 5vw, 3.5rem)`, weight 600, letter-spacing -0.03em | `.thesis__headline`, `.contact__headline` |
 | body copy | `clamp(1.25rem, 2.4vw, 1.75rem)`, weight 400, line-height 1.6, color `#111111` | `.thesis__para` |
-| tile caption | `1rem`, weight 500, letter-spacing -0.01em, line-height 1.4, color `#fff` + `mix-blend-mode: difference` | `.pov__thesis`, `.pov__caption`, `.proof__title` |
-| tile link label | `0.8rem`, weight 400, opacity 0.7, same white+difference-blend technique | `.proof__link` |
+| tile caption | `1rem`, weight 500, letter-spacing -0.01em, line-height 1.4, color `#1A1917` | `.pov__thesis`, `.pov__caption`, `.proof__title` |
+| tile link label | `0.8rem`, weight 400, opacity 0.7, color `#1A1917` | `.proof__link` |
 | divider label | `1.5rem`, letter-spacing `0.25em`, weight 500 | `.divider-label` |
 | name | `clamp(1.5rem, 3vw, 2.25rem)`, weight 600 | `.contact__name` |
 | meta | `1rem`, weight 400, color `#6b6b6b` | `.contact__studies` |
 | link | `1.125rem`, weight 500, white | `.contact__link` |
 | footer | `0.85rem`, color `#6b6b6b` | `.contact__footer` |
 
-The white-text-with-`mix-blend-mode: difference` technique is the standard
-way to caption an image tile without needing a separate scrim — reuse it,
-don't invent a gradient overlay.
+**`mix-blend-mode` — settled: removed from the project entirely.** Tile
+captions used to be white text with `mix-blend-mode: difference` so they'd
+stay readable across a background that swung light→black→light. That
+background swing is gone (see the background system below): captions sit on
+a constant `#F4F2ED` page, so they're plain `#1A1917`, and the nav carries
+its own opaque surface instead of blending with whatever is behind it. No
+element on the site uses `mix-blend-mode` any more, and new ones shouldn't
+reintroduce it — a caption on the light page is just dark ink, and anything
+over imagery gets a real scrim or its own background, not a blend mode.
 
 ### Spacing scale
 
@@ -46,11 +52,24 @@ sections, not nested inside either one.
 
 ### Navigation
 
-- Fixed, transparent, 4 links only: Point of View, Proof, Thesis, Contact.
-- Color flip is a single modifier class, `.nav--light`, toggled by script —
-  never set directly in markup.
+- Fixed, 4 links only: Point of View, Proof, Thesis, Contact.
+- The bar owns its surface: `#F4F2ED` background, 1px `#1A1917` border all
+  the way around, `|` separators between links in the secondary text color
+  `#6B6862`. Separators are their own `.nav__sep` spans, not `::before` on
+  the links, so they stay out of the links' hit area and hover state.
+- **No color flip.** `.nav--light` is gone — an opaque bar doesn't need to
+  know what's behind it. Don't reintroduce a luminance-derived text color;
+  if a section ever needs a different nav treatment, give the bar a
+  different surface, not a text-color toggle.
+- Auto-hide is the one nav state: `.nav--hidden` (a `translateY` transition,
+  nothing else reflows) is toggled from a single scroll-direction
+  `ScrollTrigger`. The bar stays put in the top `NAV_HIDE_AFTER` px of the
+  page and during a programmatic anchor scroll (`isProgrammaticScroll`).
+  That ScrollTrigger needs `scrub: true` for the same reason the background
+  system's does: a trigger-less ScrollTrigger with no animation attached
+  doesn't fire `onUpdate` on plain scroll without it.
 - Mobile: burger opens a full-screen `.nav-mobile` overlay with the same 4
-  links duplicated.
+  links duplicated. It's always light now (it used to mirror `.nav--light`).
 - Logo click scrolls to top; link clicks are intercepted (`preventDefault`)
   and routed through the custom scroll system below.
 
@@ -61,10 +80,19 @@ one `onUpdate` (`makeBgColorSystem`). It interpolates `body.style.backgroundColo
 piecewise-linearly between color "stops." Each stop is `[() => y, [r,g,b]]`
 where `y` is read live from real section `ScrollTrigger` boundaries
 (`start`/`end` in px), not hardcoded viewport percentages — so stops track
-actual section height on refresh. `.nav--light` is derived in the *same*
-`onUpdate` from the interpolated color's luminance (`< 128` → light nav). No
-section has its own independent background tween, and there is no separate
-enter/leave bookkeeping for the nav.
+actual section height on refresh. No section has its own independent
+background tween.
+
+**The system is down to one transition: Thesis → Contact.** `PAPER`
+(`#F4F2ED`) holds from the top of the page all the way through Thesis, then
+runs down to `DARK` (`#0a0a0a`) by the end of Contact. The POV-driven
+light→black→light swing is gone on both breakpoints, and with it the
+POV/Proof boundary triggers that existed only to feed it. The two
+breakpoints now differ in exactly one thing — where "Thesis has finished
+being read" falls: desktop reads it off the pinned timeline's trigger end,
+mobile off the last paragraph's own reveal trigger end, each plus
+`THESIS_BREATHING_ROOM`. The nav is not derived from this color at all any
+more (see Navigation).
 
 **Rule going forward: this is the only thing allowed to write
 `body.style.backgroundColor`.** A new page/section that needs a background
