@@ -100,51 +100,151 @@
   }
 
   .pov {
+    /* One shared ceiling for both photos — the single value both frames read,
+       so the two blocks stay the same height by construction rather than by
+       one being fitted to the other. It's a guard now rather than the usual
+       constraint: since the photo reaches into the outer margin (below), the
+       half-column width is what normally binds first. */
+    --pov-media-h: min(96vh, 940px);
+    /* How close the photo gets to the window edge on its outer side, and
+       how far that lets it reach past the section's own 8vw padding. */
+    --pov-media-inset: 4vw;
+    --pov-media-bleed: calc(8vw - var(--pov-media-inset));
+    --pov-block-gap: clamp(40px, 6vh, 88px);
+    /* Distance between the two columns. Half of it is the gap from the
+       centre axis to the image, and to the text — identical in both blocks
+       because the grid is symmetric and both hug the axis (see justify-self
+       below). Change this one value and the symmetry survives. */
+    --pov-axis-gap: clamp(32px, 5vw, 88px);
+
     min-height: auto;
     padding: var(--space-2) 8vw 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: var(--pov-block-gap);
   }
 
-  .pov__grid {
-    display: flex;
-    gap: 2.5rem;
+  /* Two equal halves split by the centre axis of the page. Block 1 runs
+     image | text, block 2 mirrors it via grid-column (see --flip). */
+  .pov__block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--pov-axis-gap);
+    align-items: center;
   }
 
-  .pov__item {
-    flex: 1;
-    min-width: 0;
-  }
-
+  /* Both children hug the axis, so image-to-axis and text-to-axis are the
+     same distance (--pov-axis-gap / 2) in both blocks. The frame shrinks to
+     whatever the image ends up being, so the ring and the rounded corners
+     always sit on the photo's own edge rather than on an empty box around it.
+     The negative outer margin is what lets the photo grow away from the axis
+     into the page margin: the inner edge stays put, so the axis and the text
+     column don't move — only the outer edge travels towards the window. */
   .pov__frame {
+    justify-self: end;
+    width: fit-content;
+    margin-left: calc(-1 * var(--pov-media-bleed));
+    max-width: calc(100% + var(--pov-media-bleed));
     border-radius: 24px;
     overflow: hidden;
-    cursor: default;
+    /* Outset ring rather than a border: no layout shift, follows the radius,
+       and (unlike an inset shadow) it isn't painted over by the image. */
+    box-shadow: 0 0 0 1px rgba(26, 25, 23, 0.15);
   }
 
+  .pov__text {
+    justify-self: start;
+    max-width: 32rem;
+  }
+
+  /* Mirrored block: same sizing rules, only the side changes — justify-self
+     start is the axis side in column 2, and the bleed goes right instead. */
+  .pov__block--flip .pov__frame {
+    grid-column: 2;
+    justify-self: start;
+    margin-left: 0;
+    margin-right: calc(-1 * var(--pov-media-bleed));
+  }
+
+  .pov__block--flip .pov__text {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  /* No forced aspect-ratio and no object-fit crop: the image keeps its own
+     proportions and is bounded on both axes — by the half-column on width,
+     by the shared --pov-media-h on height. Whichever binds first, it scales
+     the whole photo, so a vertical shot still shows its full frame instead
+     of being centre-cropped into a landscape box. */
   .pov__frame img {
-    aspect-ratio: 4 / 3;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
     display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: var(--pov-media-h);
   }
 
-  .pov__thesis,
-  .pov__caption {
-    margin-top: var(--space-4);
-    color: #1A1917;
-    text-align: center;
-    font-size: 1rem;
+  /* Sized and weighted to hold its own next to a photo this large —
+     left-aligned in both blocks, including the mirrored one, because a
+     paragraph this long reads worse centred than the symmetry is worth. */
+  .pov__para {
+    font-size: clamp(1.38rem, 1.88vw, 1.8rem);
     font-weight: 500;
-    letter-spacing: -0.01em;
-    line-height: 1.4;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+    color: #1A1917;
   }
 
-  @media (max-width: 768px) {
-    .pov__grid {
-      flex-direction: column;
+  /* Reveal start state (see the .pov__block timeline in <script>). */
+  .pov__frame,
+  .pov__text {
+    opacity: 0;
+  }
+
+  @media (max-width: 767px) {
+    .pov__block {
+      grid-template-columns: 1fr;
+      row-gap: var(--space-4);
+    }
+
+    /* Single column: image above text, in both blocks — the mirror only
+       makes sense while there are two columns to mirror. */
+    .pov__block--flip .pov__frame,
+    .pov__block--flip .pov__text {
+      grid-column: 1;
+    }
+
+    .pov__block--flip .pov__frame {
+      grid-row: 1;
+    }
+
+    /* One column: the photo runs the full width of it, no bleed into the
+       margin, and the height cap stops applying — a phone-width photo is
+       nowhere near it anyway. */
+    .pov__frame,
+    .pov__block--flip .pov__frame {
+      justify-self: stretch;
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    .pov__frame img {
+      width: 100%;
+      max-height: none;
+    }
+
+    .pov__block--flip .pov__text {
+      grid-row: 2;
+    }
+
+    .pov__text,
+    .pov__block--flip .pov__text {
+      justify-self: stretch;
+      max-width: 100%;
     }
   }
 
@@ -206,6 +306,7 @@
     aspect-ratio: 4 / 3;
     border-radius: 24px;
     overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(26, 25, 23, 0.15);
   }
 
   .proof__frame img {
@@ -688,18 +789,21 @@
   </section>
 
   <section class="pov" id="pov">
-    <div class="pov__grid">
-      <div class="pov__item">
-        <div class="pov__frame">
-          <img src="images/event.jpg?v=3" alt="Event photo">
-        </div>
-        <p class="pov__thesis">Every brand measures events. No dealer can.</p>
+    <div class="pov__block">
+      <div class="pov__frame">
+        <img src="images/event.jpg?v=3" alt="Event photo">
       </div>
-      <div class="pov__item">
-        <div class="pov__frame">
-          <img src="images/portrait.jpg?v=3" alt="Portrait photo">
-        </div>
-        <p class="pov__caption">Jan Skotnicki</p>
+      <div class="pov__text">
+        <p class="pov__para">The advantage is being there — at the event. You see the client's first reaction, the hesitation, the moment when a brand becomes personal. None of it fits in a spreadsheet, and all of it decides whether they come back.</p>
+      </div>
+    </div>
+
+    <div class="pov__block pov__block--flip">
+      <div class="pov__frame">
+        <img src="images/portrait.jpg?v=3" alt="Portrait photo">
+      </div>
+      <div class="pov__text">
+        <p class="pov__para">Event marketing and CRM at Lexus Kraków-Zakopiańska. Currently studying Luxury Management at Politecnico di Milano and NEOMA — learning how premium brands build experiences that people remember. Kraków, Milan, Reims. Next: wherever the work is exceptional.</p>
       </div>
     </div>
   </section>
@@ -800,6 +904,35 @@
       duration: 1,
       stagger: 0.2,
       ease: "power2.out"
+    });
+
+    // POV blocks: image first, text 1s behind it. Both blocks get the same
+    // timeline, each triggered by its own block.
+    //
+    // This is the one reveal on the page that is NOT scrubbed: the offset
+    // between photo and text is a duration in time, which scroll-position
+    // scrubbing can't express (scrubbing would tie the offset to how fast the
+    // user scrolls). So it's a plain timeline with toggleActions instead —
+    // "play ... reverse" is what makes it run forwards on the way down and
+    // back out on the way up, rather than staying revealed once seen.
+    gsap.utils.toArray(".pov__block").forEach((block) => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: block,
+          start: "top 80%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      tl.fromTo(block.querySelector(".pov__frame"),
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 3.5, ease: "power2.out" }
+      ).fromTo(block.querySelector(".pov__text"),
+        { opacity: 0, y: 30 },
+        // 1s behind the photo, 2.5s long: the two land together at 3.5s.
+        { opacity: 1, y: 0, duration: 2.5, ease: "power2.out" },
+        1
+      );
     });
 
     // Single coordinated background-color system per breakpoint. One
