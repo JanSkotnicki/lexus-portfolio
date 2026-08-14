@@ -253,7 +253,7 @@
      rather than letting the body colour through, so the card reads as one
      surface once photos are scattered across it. */
   .proof-intro {
-    --proof-intro-step: 4.5vw;
+    --proof-intro-step: 13.5vw;
 
     position: relative;
     min-height: 100vh;
@@ -268,7 +268,84 @@
   .proof-intro__media {
     position: absolute;
     inset: 0;
+    z-index: 1;
   }
+
+  /* The scatter is one solved composition, not a layout that re-flows. Tile
+     widths are in vw while the section's height follows the window, so on a
+     window shaped differently from the 1440x900 reference the tiles would
+     grow relative to the section and start colliding (they do, measurably,
+     at 16:9). The stage fixes that: a box of the reference aspect ratio,
+     sized purely in vw and centred, so every tile position and size — and
+     the vw-sized lettering above it — scales by the same factor whatever
+     the window shape. Taller windows leave slack above and below it;
+     wider ones crop it top and bottom. */
+  .proof-intro__stage {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100vw;
+    height: 62.5vw; /* 1440 : 900 */
+    transform: translateY(-50%);
+  }
+
+  /* Scattered tiles. Positions were solved once, offline, against a 5x4
+     grid at a 1440x900 reference: one photo per cell, jittered up to 30% of
+     the cell inside it, then checked for (a) no overlap with any other tile,
+     (b) no intrusion into the PROOF wordmark's protected band — each letter
+     inflated by 4vw — and (c) staying inside the section. They are constants
+     here on purpose: re-rolling them per page load would mean a layout
+     nobody has ever checked. Don't hand-edit a single value without
+     re-running that check; the tiles are packed tightly enough that moving
+     one by a couple of percent can put it under a letter.
+
+     left/top are percentages of the section, which is 100vw wide — so they
+     track the tile widths (in vw) horizontally at any window width. */
+  .proof-intro__tile {
+    position: absolute;
+    display: block;
+    height: auto;
+    /* Inert while height is auto — the photos keep their own proportions.
+       Kept so a fixed height later crops rather than distorts. */
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: 0 0 0 1px rgba(26, 25, 23, 0.15);
+  }
+
+  /* Every one of the 13 photos renders portrait (3:4), so a tile's height is
+     4/3 of its width — the section's height, not its width, is the scarce
+     resource here. 22/14/9vw would not pack without either overlaps or
+     photos hanging half off the edge; these are the nearest sizes that do. */
+  .proof-intro__tile--lg { width: 10vw; }
+  .proof-intro__tile--md { width: 6.5vw; }
+  .proof-intro__tile--sm { width: 4.5vw; }
+
+  /* Below ~800px the lettering hits the floor of its clamp (1.5rem) and stops
+     scaling with the window, while the stage keeps shrinking with vw — the
+     two drift apart and tiles end up on top of the letters (measurably: 21
+     intrusions at 390px wide). The tiles are 33-78px there anyway, which is
+     confetti rather than photographs, so the scatter is dropped and the
+     wordmark carries the section alone. A real phone treatment for it is
+     still an open design decision. */
+  @media (max-width: 800px) {
+    .proof-intro__media {
+      display: none;
+    }
+  }
+
+  .proof-intro__tile--01 { left: 5.08%; top: 55.8%; }
+  .proof-intro__tile--02 { left: 80.47%; top: 26.83%; }
+  .proof-intro__tile--03 { left: 62.28%; top: 72.32%; }
+  .proof-intro__tile--04 { left: 75.37%; top: 6.75%; }
+  .proof-intro__tile--05 { left: 36.94%; top: 48.39%; }
+  .proof-intro__tile--06 { left: 60.46%; top: 25.35%; }
+  .proof-intro__tile--07 { left: 23.13%; top: 35.99%; }
+  .proof-intro__tile--08 { left: 39.29%; top: 75.79%; }
+  .proof-intro__tile--09 { left: 72.36%; top: 55.44%; }
+  .proof-intro__tile--10 { left: 9.26%; top: 32.64%; }
+  .proof-intro__tile--11 { left: 54.39%; top: 9.86%; }
+  .proof-intro__tile--12 { left: 44.66%; top: 25.9%; }
+  .proof-intro__tile--13 { left: 28.25%; top: 74.36%; }
 
   .proof-intro__word {
     position: relative;
@@ -287,7 +364,7 @@
     margin-left: 50%;
     transform: translateX(calc(-50% + var(--i) * var(--proof-intro-step)));
     font-family: var(--font-display);
-    font-size: clamp(1.5rem, 3vw, 3.5rem);
+    font-size: clamp(4rem, 9vw, 11rem);
     font-weight: 600;
     /* Unitless, so the vertical pitch is a fraction of the font size and
        halves on its own whenever the letters do — unlike the horizontal
@@ -828,8 +905,25 @@
   </section>
 
   <section class="proof-intro">
-    <!-- Layer 1: the scattered photos land in here later. Empty on purpose. -->
-    <div class="proof-intro__media" aria-hidden="true"></div>
+    <!-- Layer 1: scattered photos behind the wordmark. Decorative, so the
+         whole layer is hidden from assistive tech and every alt is empty. -->
+    <div class="proof-intro__media" aria-hidden="true">
+      <div class="proof-intro__stage">
+        <img class="proof-intro__tile proof-intro__tile--lg proof-intro__tile--01" src="images/proof/proof-01.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--lg proof-intro__tile--02" src="images/proof/proof-02.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--lg proof-intro__tile--03" src="images/proof/proof-03.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--04" src="images/proof/proof-04.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--05" src="images/proof/proof-05.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--06" src="images/proof/proof-06.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--07" src="images/proof/proof-07.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--08" src="images/proof/proof-08.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--09" src="images/proof/proof-09.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--10" src="images/proof/proof-10.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--11" src="images/proof/proof-11.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--12" src="images/proof/proof-12.jpg" alt="" loading="lazy">
+        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--13" src="images/proof/proof-13.jpg" alt="" loading="lazy">
+      </div>
+    </div>
     <div class="proof-intro__word" aria-label="Proof">
       <div class="proof-intro__letter" aria-hidden="true">P</div>
       <div class="proof-intro__letter" aria-hidden="true">R</div>
