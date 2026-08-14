@@ -121,7 +121,8 @@ Elements start `opacity: 0; transform: translateY(30px)` in CSS, revealed by
 a scrubbed `ScrollTrigger` (typically `start: "top 85%", end: "top 45%"`), or
 — for Thesis on desktop — as tweens inside the pinned timeline. The hero
 headline is the one exception: it plays once on load via `gsap.from` with
-stagger, not scroll-linked.
+stagger, not scroll-linked. The POV blocks are a deliberate exception to the
+scrub rule — see section E.
 
 ---
 
@@ -197,3 +198,47 @@ default):
    material provided for that case study. If the tone needs a concrete
    detail and none was given, ask — don't estimate or infer one. Applies
    to every case study, not just Golf.
+
+## E. Known deviations
+
+Places where the code knowingly departs from a convention in section A.
+Each one is a decision, not drift — don't "fix" them back, and don't take
+them as licence to spread the exception further.
+
+### 1. POV reveal is not scrubbed
+
+The Reveal pattern above describes scrubbed `ScrollTrigger`s. The POV blocks
+are the one reveal on the site that isn't: each block drives a plain
+`gsap.timeline` with `toggleActions: "play none none reverse"`, photo at
+t=0 and text 1s behind it.
+
+Why: the point of that reveal is a fixed, deliberate rhythm — the same
+unhurried entrance whether the visitor eases down the page or flicks past
+it. Scrubbing would tie the timing to scroll speed, so a fast scroll would
+compress the whole thing into a blink; the "premium" reading of the section
+depends on it not doing that. `reverse` (rather than leaving the block
+revealed) is what keeps the entrance available on the way back up.
+
+Scope: POV only. Everything else stays scrubbed.
+
+### 2. POV owns its own spacing tokens and breaks the page margin
+
+Horizontal page padding is the constant `8vw` everywhere (section A). POV is
+the exception: its photos reach past that padding to `4vw` from the window
+edge, on the outer side of each block — left in block 1, right in the
+mirrored block 2. Mechanically that's a negative margin on `.pov__frame`
+plus a matching `max-width`, so the photo grows away from the centre axis
+while its inner edge — and therefore the axis and the whole text column —
+stays exactly where it was.
+
+The section also carries its own variables, all declared on `.pov`:
+
+| Token | Role |
+|---|---|
+| `--pov-media-h` | shared height ceiling both photos read, so the two blocks match by construction rather than one being fitted to the other |
+| `--pov-media-inset` | how close a photo gets to the window edge (`4vw`); the bleed past the page padding derives from it |
+| `--pov-axis-gap` | column gap; half of it is the distance from the centre axis to the photo *and* to the text, in both blocks |
+
+Scope: POV only. Other sections keep the plain `8vw` and don't get their own
+spacing tokens — a second section wanting a bleed is a design decision to
+make deliberately, not a pattern to copy because POV did it.
