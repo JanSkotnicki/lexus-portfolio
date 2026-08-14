@@ -248,43 +248,67 @@
     }
   }
 
+  /* Full-screen PROOF title card. Two stacked layers: the (still empty)
+     photo layer underneath, the wordmark above it. Its own solid background
+     rather than letting the body colour through, so the card reads as one
+     surface once photos are scattered across it. */
+  .proof-intro {
+    --proof-intro-step: 4.5vw;
+
+    position: relative;
+    min-height: 100vh;
+    padding: var(--space-16) 8vw;
+    background: #F4F2ED;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .proof-intro__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .proof-intro__word {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* One letter per row, each stepped further right than the one above it.
+     The stack is built around its middle letter (the first O): margin-left
+     50% puts a letter's left edge on the section's centre line, translateX
+     -50% pulls it back by half its own width — so that letter is centred —
+     and --i then steps the others off it, -2..+2. Stepping centres rather
+     than left edges is what keeps the run even, since P, R, O and F are not
+     the same width. line-height under 1 lets the rows bite into each other. */
+  .proof-intro__letter {
+    width: fit-content;
+    margin-left: 50%;
+    transform: translateX(calc(-50% + var(--i) * var(--proof-intro-step)));
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 3.5rem);
+    font-weight: 600;
+    /* Unitless, so the vertical pitch is a fraction of the font size and
+       halves on its own whenever the letters do — unlike the horizontal
+       step, which is in vw and has to be halved by hand. */
+    line-height: 0.85;
+    letter-spacing: -0.02em;
+    color: #1A1917;
+  }
+
+  .proof-intro__letter:nth-child(1) { --i: -2; }
+  .proof-intro__letter:nth-child(2) { --i: -1; }
+  .proof-intro__letter:nth-child(3) { --i: 0; }
+  .proof-intro__letter:nth-child(4) { --i: 1; }
+  .proof-intro__letter:nth-child(5) { --i: 2; }
+
   .proof {
     min-height: auto;
     padding: var(--space-8) 8vw 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
-  }
-
-  .section-divider {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 84vw;
-    margin-left: auto;
-    margin-right: auto;
-    gap: 32px;
-    margin-top: var(--space-16);
-    margin-bottom: var(--space-12);
-  }
-
-  .divider-line {
-    flex: 1 1 0;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.3;
-  }
-
-  /* Section label takes the display face, but keeps its own 0.25em tracking
-     and weight 500 — the headline -0.02em would collapse the wide letter-
-     spacing that makes this read as a label rather than a headline. */
-  .divider-label {
-    flex: 0 0 auto;
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    letter-spacing: 0.25em;
-    font-weight: 500;
-    white-space: nowrap;
   }
 
   .proof__grid {
@@ -722,11 +746,6 @@
       padding-top: 1vh;
     }
 
-    .section-divider {
-      margin-top: 60px;
-      margin-bottom: 50px;
-    }
-
     .proof {
       padding-top: 30px;
     }
@@ -808,11 +827,17 @@
     </div>
   </section>
 
-  <div class="section-divider">
-    <span class="divider-line"></span>
-    <span class="divider-label">Proof</span>
-    <span class="divider-line"></span>
-  </div>
+  <section class="proof-intro">
+    <!-- Layer 1: the scattered photos land in here later. Empty on purpose. -->
+    <div class="proof-intro__media" aria-hidden="true"></div>
+    <div class="proof-intro__word" aria-label="Proof">
+      <div class="proof-intro__letter" aria-hidden="true">P</div>
+      <div class="proof-intro__letter" aria-hidden="true">R</div>
+      <div class="proof-intro__letter" aria-hidden="true">O</div>
+      <div class="proof-intro__letter" aria-hidden="true">O</div>
+      <div class="proof-intro__letter" aria-hidden="true">F</div>
+    </div>
+  </section>
 
   <section class="proof" id="proof">
     <div class="proof__grid">
