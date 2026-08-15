@@ -253,7 +253,7 @@
      rather than letting the body colour through, so the card reads as one
      surface once photos are scattered across it. */
   .proof-intro {
-    --proof-intro-step: 13.5vw;
+    --proof-intro-step: 4.5vw;
 
     position: relative;
     min-height: 100vh;
@@ -271,40 +271,18 @@
     z-index: 1;
   }
 
-  /* The scatter is one solved composition, not a layout that re-flows. Tile
-     widths are in vw while the section's height follows the window, so on a
-     window shaped differently from the 1440x900 reference the tiles would
-     grow relative to the section and start colliding (they do, measurably,
-     at 16:9). The stage fixes that: a box of the reference aspect ratio,
-     sized purely in vw and centred, so every tile position and size — and
-     the vw-sized lettering above it — scales by the same factor whatever
-     the window shape. Taller windows leave slack above and below it;
-     wider ones crop it top and bottom. */
-  .proof-intro__stage {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 100vw;
-    height: 62.5vw; /* 1440 : 900 */
-    transform: translateY(-50%);
-  }
-
-  /* Scattered tiles. Positions were solved once, offline, against a 5x4
-     grid at a 1440x900 reference: one photo per cell, jittered up to 30% of
-     the cell inside it, then checked for (a) no overlap with any other tile,
-     (b) no intrusion into the PROOF wordmark's protected band — each letter
-     inflated by 4vw — and (c) staying inside the section. They are constants
-     here on purpose: re-rolling them per page load would mean a layout
-     nobody has ever checked. Don't hand-edit a single value without
-     re-running that check; the tiles are packed tightly enough that moving
-     one by a couple of percent can put it under a letter.
-
-     left/top are percentages of the section, which is 100vw wide — so they
-     track the tile widths (in vw) horizontally at any window width. */
+  /* The tiles are a live field, not an arrangement: JS owns their position
+     (transform) and their opacity, so nothing is pinned here. They start
+     invisible and off-origin until the system below places them, which is
+     also what keeps them from flashing in the top-left corner on load. */
   .proof-intro__tile {
     position: absolute;
+    left: 0;
+    top: 0;
     display: block;
     height: auto;
+    opacity: 0;
+    will-change: transform, opacity;
     /* Inert while height is auto — the photos keep their own proportions.
        Kept so a fixed height later crops rather than distorts. */
     object-fit: cover;
@@ -313,39 +291,11 @@
   }
 
   /* Every one of the 13 photos renders portrait (3:4), so a tile's height is
-     4/3 of its width — the section's height, not its width, is the scarce
-     resource here. 22/14/9vw would not pack without either overlaps or
-     photos hanging half off the edge; these are the nearest sizes that do. */
+     4/3 of its width. Three sizes, and the size decides how fast a tile
+     travels — see PROOF_SPEED in the script. */
   .proof-intro__tile--lg { width: 10vw; }
   .proof-intro__tile--md { width: 6.5vw; }
   .proof-intro__tile--sm { width: 4.5vw; }
-
-  /* Below ~800px the lettering hits the floor of its clamp (1.5rem) and stops
-     scaling with the window, while the stage keeps shrinking with vw — the
-     two drift apart and tiles end up on top of the letters (measurably: 21
-     intrusions at 390px wide). The tiles are 33-78px there anyway, which is
-     confetti rather than photographs, so the scatter is dropped and the
-     wordmark carries the section alone. A real phone treatment for it is
-     still an open design decision. */
-  @media (max-width: 800px) {
-    .proof-intro__media {
-      display: none;
-    }
-  }
-
-  .proof-intro__tile--01 { left: 5.08%; top: 55.8%; }
-  .proof-intro__tile--02 { left: 80.47%; top: 26.83%; }
-  .proof-intro__tile--03 { left: 62.28%; top: 72.32%; }
-  .proof-intro__tile--04 { left: 75.37%; top: 6.75%; }
-  .proof-intro__tile--05 { left: 36.94%; top: 48.39%; }
-  .proof-intro__tile--06 { left: 60.46%; top: 25.35%; }
-  .proof-intro__tile--07 { left: 23.13%; top: 35.99%; }
-  .proof-intro__tile--08 { left: 39.29%; top: 75.79%; }
-  .proof-intro__tile--09 { left: 72.36%; top: 55.44%; }
-  .proof-intro__tile--10 { left: 9.26%; top: 32.64%; }
-  .proof-intro__tile--11 { left: 54.39%; top: 9.86%; }
-  .proof-intro__tile--12 { left: 44.66%; top: 25.9%; }
-  .proof-intro__tile--13 { left: 28.25%; top: 74.36%; }
 
   .proof-intro__word {
     position: relative;
@@ -353,6 +303,9 @@
   }
 
   /* One letter per row, each stepped further right than the one above it.
+     The step is deliberately tighter than the letters are wide (4.5vw against
+     a glyph of roughly 3.5-4vw), so consecutive letters nearly touch and the
+     run reads as one word set on a diagonal rather than five loose letters.
      The stack is built around its middle letter (the first O): margin-left
      50% puts a letter's left edge on the section's centre line, translateX
      -50% pulls it back by half its own width — so that letter is centred —
@@ -364,7 +317,7 @@
     margin-left: 50%;
     transform: translateX(calc(-50% + var(--i) * var(--proof-intro-step)));
     font-family: var(--font-display);
-    font-size: clamp(4rem, 9vw, 11rem);
+    font-size: clamp(2.5rem, 5.5vw, 6.5rem);
     font-weight: 600;
     /* Unitless, so the vertical pitch is a fraction of the font size and
        halves on its own whenever the letters do — unlike the horizontal
@@ -381,35 +334,64 @@
   .proof-intro__letter:nth-child(5) { --i: 2; }
 
   .proof {
+    /* Photo geometry is POV's: it runs from --proof-media-inset off the
+       window edge to half the axis gap short of the centre line. Only the
+       height differs — see --proof-media-h. */
+    --proof-media-inset: 4vw;
+    --proof-axis-gap: clamp(32px, 5vw, 88px);
+    --proof-block-gap: clamp(48px, 7vh, 104px);
+    /* POV's photos are as tall as their own proportions make them — roughly
+       58vw at the reference width. These are cropped instead of scaled, so
+       the height is set outright at ~57% of that. Kept in vw so the ratio to
+       POV holds at any window width. */
+    --proof-media-h: min(33vw, 560px);
+
     min-height: auto;
     padding: var(--space-8) 8vw 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: var(--proof-block-gap);
   }
 
-  .proof__grid {
-    display: flex;
-    gap: 2.5rem;
-  }
-
-  .proof__item {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
+  /* The block breaks out of the section's 8vw padding so each grid column is
+     exactly half the window. That is what lets the text sit on the centre of
+     its half: with a padded column and a column-gap, "centred in the column"
+     lands ~40px inboard of the centre of the half. The gap to the axis is
+     carried by the photo's own margin instead of by column-gap. */
+  .proof__block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 0;
+    align-items: center;
+    margin-left: -8vw;
+    margin-right: -8vw;
     text-decoration: none;
+    color: inherit;
     cursor: pointer;
   }
 
+  /* Frame fills its half and reaches out into the page margin. Unlike POV it
+     is a fixed-height box the photo has to fill, not a box the photo sizes. */
   .proof__frame {
     position: relative;
-    aspect-ratio: 4 / 3;
+    justify-self: stretch;
+    height: var(--proof-media-h);
+    margin-left: var(--proof-media-inset);
+    margin-right: calc(var(--proof-axis-gap) / 2);
     border-radius: 24px;
     overflow: hidden;
     box-shadow: 0 0 0 1px rgba(26, 25, 23, 0.15);
   }
 
+  .proof__block--flip .proof__frame {
+    grid-column: 2;
+    margin-left: calc(var(--proof-axis-gap) / 2);
+    margin-right: var(--proof-media-inset);
+  }
+
+  /* cover, so the shorter box crops the frame horizontally rather than
+     squashing it — the photos keep their proportions, we just see less. */
   .proof__frame img {
     width: 100%;
     height: 100%;
@@ -423,55 +405,120 @@
     object-position: center 65%;
   }
 
-  .proof__item:hover .proof__frame img {
+  .proof__block:hover .proof__frame img {
     transform: scale(1.05);
   }
 
-  .proof__frame::after {
-    content: "↗";
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 2.25rem;
-    height: 2.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.85);
-    color: #111;
-    font-size: 1.1rem;
-  }
-
-  .proof__meta {
-    margin-top: var(--space-4);
+  /* Centred in its half rather than hugging the axis: the copy here is short
+     (a name, a line, a button), so pinned to the axis it read as glued to the
+     photo instead of as a column. This is the one place the section departs
+     from POV's geometry, where a full paragraph fills the column and pinning
+     it works. */
+  .proof__text {
+    justify-self: center;
+    max-width: 32rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    text-align: center;
+    gap: var(--space-2);
+  }
+
+  .proof__block--flip .proof__text {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
   }
 
   .proof__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3.2vw, 2.75rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
     color: #1A1917;
-    text-align: center;
-    font-size: 1rem;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    line-height: 1.4;
   }
 
-  .proof__link {
-    color: #1A1917;
-    text-align: center;
-    font-size: 0.8rem;
+  .proof__caption {
+    font-size: clamp(1.05rem, 1.35vw, 1.35rem);
     font-weight: 400;
-    letter-spacing: 0.02em;
-    opacity: 0.7;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    color: #6B6862;
   }
 
-  @media (max-width: 768px) {
-    .proof__grid {
-      flex-direction: column;
+  /* Outlined button rather than a bare link. The radius matches the photo
+     frames, and min-height plus the padding keep the tap target at 44px even
+     though the label is a single line. Hover is driven by the block, since
+     the whole block is the link. */
+  .proof__cta {
+    margin-top: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0.7rem 1.6rem;
+    border: 1px solid rgba(26, 25, 23, 0.15);
+    border-radius: 24px;
+    background-color: transparent;
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #8C7A5B;
+    transition: background-color 0.3s ease;
+  }
+
+  .proof__block:hover .proof__cta {
+    background-color: rgba(140, 122, 91, 0.08);
+  }
+
+  /* Reveal start state (see the .proof__block timeline in <script>). */
+  .proof__frame,
+  .proof__text {
+    opacity: 0;
+  }
+
+  @media (max-width: 767px) {
+    .proof__block {
+      grid-template-columns: 1fr;
+      row-gap: var(--space-4);
+    }
+
+    /* One column: photo above text in both blocks, no bleed into the margin. */
+    .proof__block--flip .proof__frame,
+    .proof__block--flip .proof__text {
+      grid-column: 1;
+    }
+
+    .proof__block--flip .proof__frame {
+      grid-row: 1;
+    }
+
+    /* The flipped block's text carries grid-row 1 from the desktop rule; it
+       has to be pushed back to row 2 here or it lands on the photo instead
+       of under it. */
+    .proof__block--flip .proof__text {
+      grid-row: 2;
+    }
+
+    /* Back inside the page padding, one column, no breakout. */
+    .proof__block {
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    .proof__frame,
+    .proof__block--flip .proof__frame {
+      margin-left: 0;
+      margin-right: 0;
+      width: 100%;
+      height: min(60vw, 320px);
+    }
+
+    .proof__text,
+    .proof__block--flip .proof__text {
+      justify-self: stretch;
+      max-width: 100%;
     }
   }
 
@@ -908,21 +955,23 @@
     <!-- Layer 1: scattered photos behind the wordmark. Decorative, so the
          whole layer is hidden from assistive tech and every alt is empty. -->
     <div class="proof-intro__media" aria-hidden="true">
-      <div class="proof-intro__stage">
-        <img class="proof-intro__tile proof-intro__tile--lg proof-intro__tile--01" src="images/proof/proof-01.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--lg proof-intro__tile--02" src="images/proof/proof-02.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--lg proof-intro__tile--03" src="images/proof/proof-03.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--04" src="images/proof/proof-04.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--05" src="images/proof/proof-05.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--06" src="images/proof/proof-06.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--07" src="images/proof/proof-07.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--md proof-intro__tile--08" src="images/proof/proof-08.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--09" src="images/proof/proof-09.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--10" src="images/proof/proof-10.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--11" src="images/proof/proof-11.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--12" src="images/proof/proof-12.jpg" alt="" loading="lazy">
-        <img class="proof-intro__tile proof-intro__tile--sm proof-intro__tile--13" src="images/proof/proof-13.jpg" alt="" loading="lazy">
-      </div>
+      <img class="proof-intro__tile proof-intro__tile--lg" src="images/proof/proof-01.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--lg" src="images/proof/proof-02.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--lg" src="images/proof/proof-03.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--lg" src="images/proof/proof-14.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--md" src="images/proof/proof-04.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--md" src="images/proof/proof-05.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--md" src="images/proof/proof-06.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--md" src="images/proof/proof-07.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--md" src="images/proof/proof-08.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--md" src="images/proof/proof-15.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--md" src="images/proof/proof-16.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--sm" src="images/proof/proof-09.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--sm" src="images/proof/proof-10.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--sm" src="images/proof/proof-11.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--sm" src="images/proof/proof-12.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--sm" src="images/proof/proof-13.jpg" alt="" loading="lazy">
+      <img class="proof-intro__tile proof-intro__tile--sm" src="images/proof/proof-17.jpg" alt="" loading="lazy">
     </div>
     <div class="proof-intro__word" aria-label="Proof">
       <div class="proof-intro__letter" aria-hidden="true">P</div>
@@ -934,26 +983,27 @@
   </section>
 
   <section class="proof" id="proof">
-    <div class="proof__grid">
-      <a class="proof__item" href="/case-study/golf/">
-        <div class="proof__frame">
-          <img class="proof__img--golf" src="images/lexus-golf.jpg" alt="Golf Tournament case study">
-        </div>
-        <div class="proof__meta">
-          <p class="proof__title">Golf Tournament — when precision meets elegance</p>
-          <span class="proof__link">Read case study</span>
-        </div>
-      </a>
-      <a class="proof__item" href="#">
-        <div class="proof__frame">
-          <img src="images/es-premiera.jpg" alt="New Lexus ES premiere">
-        </div>
-        <div class="proof__meta">
-          <p class="proof__title">New Lexus ES — the new era begins</p>
-          <span class="proof__link">Read case study</span>
-        </div>
-      </a>
-    </div>
+    <a class="proof__block" href="/case-study/golf/">
+      <div class="proof__frame">
+        <img class="proof__img--golf" src="images/lexus-golf.jpg" alt="Golf Tournament case study">
+      </div>
+      <div class="proof__text">
+        <h3 class="proof__title">Golf Tournament</h3>
+        <p class="proof__caption">“When precision meets elegance”</p>
+        <span class="proof__cta">Read case study →</span>
+      </div>
+    </a>
+
+    <a class="proof__block proof__block--flip" href="#">
+      <div class="proof__frame">
+        <img src="images/es-premiera.jpg" alt="New Lexus ES premiere">
+      </div>
+      <div class="proof__text">
+        <h3 class="proof__title">New Lexus ES</h3>
+        <p class="proof__caption">“The new era begins”</p>
+        <span class="proof__cta">Read case study →</span>
+      </div>
+    </a>
   </section>
 
   <section class="thesis" id="thesis">
@@ -1053,6 +1103,256 @@
         1
       );
     });
+
+    // Proof case-study blocks: same reveal as POV — photo first, text behind
+    // it, played on the way down and reversed on the way back up — but on its
+    // own timing (1.3s, text 0.55s late) rather than POV's slower entrance.
+    gsap.utils.toArray(".proof__block").forEach((block) => {
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: block,
+          start: "top 80%",
+          toggleActions: "play none none reverse"
+        }
+      });
+
+      tl.fromTo(block.querySelector(".proof__frame"),
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 1.3, ease: "power2.out" }
+      ).fromTo(block.querySelector(".proof__text"),
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 1.3, ease: "power2.out" },
+        0.55
+      );
+    });
+
+    // PROOF backdrop — a live field of photographs rather than a fixed
+    // arrangement. 17 slots draw from a pool of every file in images/proof,
+    // so the same photo can be on screen twice at once; that's the point,
+    // not a collision to avoid. Nothing here is positioned in CSS: every slot's transform and
+    // opacity is owned by this system.
+    //
+    // Two motions run at once and add up. Scrolling pushes the tiles the
+    // opposite way to the page (scroll down, tiles rise), and between scroll
+    // events they keep drifting the same way on their own, so the field
+    // never freezes. A tile's size sets its speed, which is what separates
+    // the planes: small ones lag, big ones lead.
+    const proofSection = document.querySelector(".proof-intro");
+    const proofLayer = document.querySelector(".proof-intro__media");
+    const proofTiles = gsap.utils.toArray(".proof-intro__tile");
+
+    if (proofSection && proofTiles.length) {
+      const PROOF_SPEED = { sm: 0.35, md: 0.6, lg: 1 };
+      const PROOF_DRIFT = 27;         // px per second at speed 1, scroll idle
+      const PROOF_PARALLAX = 0.9;     // share of the scroll delta at speed 1
+
+      // Three brightnesses rather than one flat wash. The cycle below fades a
+      // slot's `fade` value, never its opacity directly — the rendered opacity
+      // is fade x level, so the crossing-the-letters dimming can move `level`
+      // without the two writers fighting over the same property.
+      const PROOF_LEVELS = [1, 0.5, 0.25];
+      const PROOF_DIMMED = 0.25;      // what a full-opacity tile drops to
+      const PROOF_DIM_RATE = 3;       // how fast it gets there, per second
+      // Two tiles of the same brightness shouldn't land next to each other;
+      // this is the separation a respawn tries to keep, as a share of the
+      // layer's width.
+      const PROOF_SEPARATION = 0.18;
+
+      // The pool is the contents of images/proof, not a list kept in here.
+      // A static host has no directory index to ask (GitHub Pages certainly
+      // doesn't), so it's discovered the only way that needs no build step
+      // and no manifest to keep in sync: walk proof-01, proof-02, ... until
+      // the numbering runs out. Drop a file into the folder following the
+      // same naming and it joins the rota on the next load; nothing here
+      // needs editing. The markup's own sources seed the pool so the field
+      // has something to show while the walk is still running.
+      const proofPool = proofTiles.map((el) => el.getAttribute("src"));
+      let proofPoolLoaded = false;
+
+      function proofLoadPool() {
+        if (proofPoolLoaded) return;
+        proofPoolLoaded = true;
+        const found = [];
+        let index = 1;
+        let misses = 0;
+        (function probe() {
+          // Two misses in a row ends it — that tolerates a single gap in the
+          // numbering (a deleted file) without walking the whole namespace.
+          if (misses >= 2 || index > 99) {
+            if (found.length) proofPool.splice(0, proofPool.length, ...found);
+            return;
+          }
+          const src = `images/proof/proof-${String(index).padStart(2, "0")}.jpg`;
+          const probeImage = new Image();
+          probeImage.onload = () => { found.push(src); misses = 0; index++; probe(); };
+          probeImage.onerror = () => { misses++; index++; probe(); };
+          probeImage.src = src;
+        })();
+      }
+
+      const proofSlots = proofTiles.map((el, i) => ({
+        el,
+        speed: PROOF_SPEED[
+          el.classList.contains("proof-intro__tile--lg") ? "lg"
+            : el.classList.contains("proof-intro__tile--md") ? "md" : "sm"
+        ],
+        // Cycling the three levels hands them out evenly across the slots
+        // (6 full, 6 mid, 5 quiet at 17) and keeps them off any one size class.
+        target: PROOF_LEVELS[i % PROOF_LEVELS.length],
+        level: PROOF_LEVELS[i % PROOF_LEVELS.length],
+        fade: 0,
+        x: 0,
+        y: 0
+      }));
+
+      // The lettering's own boxes, in layer coordinates. Only the full-opacity
+      // tiles consult them, and only to duck out of the way. Cached because
+      // the letters don't move; refreshed when the layout can have changed.
+      let proofLetterZones = [];
+      function proofMeasureLetters() {
+        const box = proofLayer.getBoundingClientRect();
+        proofLetterZones = gsap.utils.toArray(".proof-intro__letter").map((el) => {
+          const r = el.getBoundingClientRect();
+          return { x: r.left - box.left, y: r.top - box.top, w: r.width, h: r.height };
+        });
+      }
+      proofMeasureLetters();
+      window.addEventListener("resize", proofMeasureLetters);
+
+      function proofOverLetters(slot) {
+        const w = slot.el.offsetWidth;
+        const h = slot.el.offsetHeight;
+        return proofLetterZones.some((z) =>
+          slot.x < z.x + z.w && slot.x + w > z.x &&
+          slot.y < z.y + z.h && slot.y + h > z.y);
+      }
+
+      // Drop a slot somewhere new, with a new photo. Called at the start of
+      // every life cycle — always while the tile is invisible, so the jump is
+      // never seen. Candidates are sampled rather than taken blind: a tile
+      // tries not to land beside another tile of the same brightness, which is
+      // what stops the three levels clumping into patches.
+      function proofRespawn(slot) {
+        const box = proofLayer.getBoundingClientRect();
+        const w = slot.el.offsetWidth || box.width * 0.08;
+        const h = slot.el.offsetHeight || w * 4 / 3;
+        const minGap = box.width * PROOF_SEPARATION;
+        let best = null;
+        let bestClearance = -1;
+
+        for (let attempt = 0; attempt < 24; attempt++) {
+          const x = gsap.utils.random(-w * 0.25, box.width - w * 0.75);
+          const y = gsap.utils.random(-h * 0.25, box.height - h * 0.75);
+          let clearance = Infinity;
+          proofSlots.forEach((other) => {
+            if (other === slot || other.target !== slot.target) return;
+            clearance = Math.min(clearance, Math.hypot(other.x - x, other.y - y));
+          });
+          if (clearance > bestClearance) {
+            bestClearance = clearance;
+            best = { x, y };
+          }
+          if (clearance >= minGap) break;
+        }
+
+        slot.x = best.x;
+        slot.y = best.y;
+        slot.el.setAttribute("src", gsap.utils.random(proofPool));
+        slot.el.style.transform = `translate3d(${slot.x}px, ${slot.y}px, 0)`;
+      }
+
+      proofSlots.forEach((slot, i) => {
+        proofRespawn(slot);
+        const fade = gsap.utils.random(1.4, 2.6);
+        const hold = gsap.utils.random(4, 9);
+        slot.tl = gsap.timeline({ repeat: -1, paused: true, onRepeat: () => proofRespawn(slot) })
+          .fromTo(slot, { fade: 0 }, { fade: 1, duration: fade, ease: "sine.inOut" })
+          .to(slot, { fade: 1, duration: hold })
+          .to(slot, { fade: 0, duration: fade, ease: "sine.inOut" });
+        // Seed each cycle at a different phase so they never breathe in
+        // unison — otherwise the whole field blinks on and off together.
+        slot.tl.progress(i / proofSlots.length);
+      });
+
+      let proofLastScroll = window.scrollY;
+      let proofDirection = 1;         // 1 = tiles rising, as when scrolling down
+      let proofRunning = false;
+      // Motion this persistent is exactly what "reduce motion" is asking
+      // about. Checked inside proofStart too, not just once at the end —
+      // otherwise the ScrollTrigger below would start the field up again the
+      // moment the section scrolled into view.
+      const proofReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function proofFrame(time, delta) {
+        const scroll = window.scrollY;
+        const moved = scroll - proofLastScroll;
+        proofLastScroll = scroll;
+        if (moved !== 0) proofDirection = moved > 0 ? 1 : -1;
+
+        const seconds = delta / 1000;
+        const box = proofLayer.getBoundingClientRect();
+
+        proofSlots.forEach((slot) => {
+          slot.y -= moved * PROOF_PARALLAX * slot.speed;
+          slot.y -= PROOF_DRIFT * slot.speed * proofDirection * seconds;
+          slot.el.style.transform = `translate3d(${slot.x}px, ${slot.y}px, 0)`;
+
+          // A tile at full opacity would swallow the lettering, so it ducks to
+          // PROOF_DIMMED while its box is over a letter and comes back up on
+          // the way out. Eased rather than switched, or the crossing reads as
+          // a flicker. The quieter two levels are already faint enough to pass
+          // underneath untouched.
+          if (slot.target === 1) {
+            const wanted = proofOverLetters(slot) ? PROOF_DIMMED : 1;
+            slot.level += (wanted - slot.level) * Math.min(1, PROOF_DIM_RATE * seconds);
+          }
+          slot.el.style.opacity = slot.fade * slot.level;
+
+          // Travelled clear of the section: recycle it now and restart its
+          // cycle, so it fades back in somewhere new instead of popping.
+          const h = slot.el.offsetHeight;
+          if (slot.y + h < -h * 0.5 || slot.y > box.height + h * 0.5) {
+            proofRespawn(slot);
+            slot.tl.restart(true);
+          }
+        });
+      }
+
+      function proofStart() {
+        if (proofRunning || proofReduced) return;
+        proofRunning = true;
+        // Deferred to first activation: the walk downloads every photo in the
+        // folder, which has no business happening while the section is still
+        // far below the fold.
+        proofLoadPool();
+        proofLastScroll = window.scrollY;   // don't bank a jump made while idle
+        gsap.ticker.add(proofFrame);
+        proofSlots.forEach((slot) => slot.tl.play());
+      }
+
+      function proofStop() {
+        if (!proofRunning) return;
+        proofRunning = false;
+        gsap.ticker.remove(proofFrame);
+        proofSlots.forEach((slot) => slot.tl.pause());
+      }
+
+      // A full-screen animation has no business running while it's off
+      // screen — 13 transforms a frame is cheap, but not free.
+      ScrollTrigger.create({
+        trigger: proofSection,
+        start: "top bottom",
+        end: "bottom top",
+        onToggle: (self) => (self.isActive ? proofStart() : proofStop())
+      });
+
+      if (proofReduced) {
+        proofSlots.forEach((slot) => {
+          slot.level = slot.target === 1 && proofOverLetters(slot) ? PROOF_DIMMED : slot.target;
+          slot.el.style.opacity = slot.level;
+        });
+      }
+    }
 
     // Single coordinated background-color system per breakpoint. One
     // trigger-less ScrollTrigger (start 0, end "max" = the whole document)
