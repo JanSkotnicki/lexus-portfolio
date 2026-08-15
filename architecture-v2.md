@@ -155,27 +155,29 @@ default):
   `/approach`, even though `/approach` isn't linked from Proof. Back is a
   plain link (`href="/#proof"`), not a JS scroll call, since it's a
   cross-page navigation.
-- Nav stays 4 items everywhere: Point of View, Proof, Thesis, Contact. No
-  subpage adds itself to nav.
+- The home page nav stays 4 items: Point of View, Proof, Thesis, Contact.
+  No subpage adds itself to it.
 - One CTA per page.
 - Contact remains a section on `/` only — never its own subpage.
-- **Nav is static, not fixed, on every reading subpage** (`/case-study/*`
-  and `/approach` alike — anything meant to be read top to bottom as a
-  document, not just `/case-study/golf`). Design reasoning: a case study
-  (or the thesis expansion) should read like a document, not a site with a
-  menu — a nav that stays on screen through the whole read is a standing
-  invitation to leave. Concretely, on these pages:
-  - `.nav` gets `position: static` (index.html's nav stays `fixed` —
-    unchanged, home page only).
-  - No fixed-nav compensations: no extra top padding/`min-height` on the
-    hero to clear a nav that no longer overlays, no `scroll-margin`. Adding
-    any of these back on a static nav produces genuine dead space at the
-    top of the page — check for that specifically after building the hero.
-  - Since nav scrolls away, the page needs its own visible way back: a
-    footer back-link (`.case-footer-nav` → `.case-back`, sized up from the
-    header one, e.g. `1.125rem`) after the final CTA is the only
-    navigational element while reading, and must read as clearly
-    intentional, not a small utility afterthought.
+- **Nav is fixed on reading subpages too** (`/case-study/*` and
+  `/approach`), not just on the home page. It carries three things rather
+  than the site menu: the way back on the left, the page's own title in the
+  centre, and the one onward step on the right. Concretely:
+  - `.nav` is `position: fixed` with the same surface as the home page's
+    (`#F4F2ED`, 1px `#1A1917` frame, same padding and type sizes), laid out
+    as a `1fr auto 1fr` grid so the title is centred on the bar itself
+    rather than on the space between the two links.
+  - Because it overlays the document, the hero has to clear it: a
+    `--nav-clearance` added to the hero's top padding, set per breakpoint
+    (the bar is shorter on small screens). A mobile rule that overrides
+    `padding-top` has to carry the clearance too, or the first line of the
+    hero slides under the bar.
+  - The subpage nav does not need a burger or a mobile overlay — three
+    short items fit one line down to phone widths.
+  - With the way back permanently on screen, the footer back-link
+    (`.case-footer-nav` → `.case-back`) is a second route rather than the
+    only one. Keep it as the closing gesture, but it no longer carries that
+    responsibility alone, and a third copy in the hero is redundant.
 
 ## D. Technical rules
 

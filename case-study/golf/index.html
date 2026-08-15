@@ -13,7 +13,7 @@
        system stack below — only headings switch. */
     --font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
 
-    --headline-size: clamp(2.25rem, 6vw, 6.5rem);
+    --headline-size: clamp(1.8rem, 4.8vw, 5.2rem);
     --caption-size: calc(var(--headline-size) / 5.5);
     --headline-statement: clamp(2rem, 5vw, 3.5rem);
 
@@ -42,37 +42,31 @@
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
 
-  /* Nav — static, not fixed, on case-study/reading subpages (unlike
-     index.html, where it stays fixed). A case study is meant to read like
-     a document from start to finish, not a site with a menu always on
-     screen — a persistently visible nav mid-read is an invitation to
-     leave. It scrolls away with the content; the footer back-link (see
-     .case-footer-nav) is the only navigational element while reading. */
+  /* Nav — fixed on this page, and deliberately so: it stays on screen for
+     the whole read. Same bar as index.html (its own #F4F2ED surface, 1px
+     frame, same padding and type sizes) but carrying three things instead of
+     the site menu: the way back, where you are, and the one step onward. */
   .nav {
-    position: static;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    display: flex;
+    z-index: 1000;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
     padding: 20px clamp(24px, 4vw, 32px);
-    background: transparent;
-    color: #111111;
-    transition: color 0.3s ease;
+    background: #F4F2ED;
+    border: 1px solid #1A1917;
+    color: #1A1917;
   }
 
-  .nav__logo {
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: inherit;
-    text-decoration: none;
-    cursor: pointer;
-    transition: color 0.3s ease;
+  .nav__back {
+    justify-self: start;
   }
 
-  .nav__links {
-    display: flex;
-    gap: 2.5rem;
+  .nav__forward {
+    justify-self: end;
   }
 
   .nav__link {
@@ -81,106 +75,34 @@
     font-size: 0.95rem;
     font-weight: 500;
     letter-spacing: -0.01em;
-    transition: color 0.3s ease, opacity 0.2s ease;
+    transition: opacity 0.2s ease;
   }
 
   .nav__link:hover {
     opacity: 0.6;
   }
 
-  .nav__burger {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    width: 26px;
-    height: 20px;
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    color: inherit;
-  }
-
-  .nav__burger span {
-    display: block;
-    width: 100%;
-    height: 2px;
-    background: currentColor;
-  }
-
-  .nav-mobile {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2.25rem;
-    background: #ffffff;
-    color: #111111;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-  }
-
-  .nav-mobile.is-open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-  }
-
-  .nav-mobile__link {
-    color: inherit;
-    text-decoration: none;
+  /* Centre cell of the grid, so it is centred on the bar itself rather than
+     on the space left between the two links. */
+  .nav__title {
     font-family: var(--font-display);
-    font-size: 2rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
   }
 
-  .nav-mobile__close {
-    position: absolute;
-    top: 20px;
-    right: clamp(24px, 4vw, 32px);
-    width: 26px;
-    height: 20px;
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    color: inherit;
-  }
-
-  .nav-mobile__close span {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: currentColor;
-  }
-
-  .nav-mobile__close span:nth-child(1) {
-    transform: rotate(45deg);
-  }
-
-  .nav-mobile__close span:nth-child(2) {
-    transform: rotate(-45deg);
-  }
-
-  @media (max-width: 767px) {
-    .nav__links {
-      display: none;
+  @media (max-width: 640px) {
+    .nav {
+      padding: 14px 16px;
     }
 
-    .nav__burger {
-      display: flex;
+    .nav__link {
+      font-size: 0.8rem;
+    }
+
+    .nav__title {
+      font-size: 0.85rem;
     }
   }
 
@@ -204,34 +126,21 @@
   }
 
   /* Hero — text-led opening per design-spec.md §3: title, then a one-line
-     metadata row, then a centered intro in a narrower column. Nothing
-     visual sits beside the text; the hero image follows *below* the whole
-     block, as evidence for what the text has already claimed.
-     Nav is static here (see above), so it already takes real space at the
-     top of the document — the top padding is the hero's own air, not a
-     compensation for an overlaying nav. */
+     metadata row. The page carries no photographs at all apart from the fan.
+     It holds the first screen and centres the pair inside it instead of
+     padding them apart; the top padding is only the fixed nav's clearance,
+     since that bar overlays the document rather than taking space in it. */
   .case-hero {
+    --nav-clearance: 60px;
+
     width: 100%;
-    padding: var(--space-8) 8vw var(--space-12);
+    min-height: 100vh;
+    padding: var(--nav-clearance) 8vw var(--space-4);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
-  }
-
-  /* Back link stays a left-aligned utility row — centering it would read as
-     part of the title block. */
-  .case-hero__back {
-    align-self: flex-start;
-    margin-bottom: var(--space-16);
-  }
-
-  .case-hero__eyebrow {
-    font-size: 1rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: #6b6b6b;
-    margin-bottom: var(--space-4);
   }
 
   /* Title column — full width of the content column (capped so it doesn't
@@ -298,23 +207,9 @@
     }
   }
 
-  /* Intro — deliberately a narrower column than the title above it, so the
-     hero reads as a funnel from statement to explanation. */
-  .case-hero__intro {
-    margin-top: var(--space-8);
-    max-width: 640px;
-    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
-    font-weight: 400;
-    line-height: 1.6;
-    letter-spacing: 0.01em;
-    color: #6b6b6b;
-    text-align: center;
-  }
-
   @media (max-width: 600px) {
-    .case-hero__meta,
-    .case-hero__intro {
-      margin-top: 4vh;
+    .case-hero__meta {
+      margin-top: 5vh;
     }
 
     .case-hero__meta-item {
@@ -322,43 +217,40 @@
     }
   }
 
-  /* Section divider — identical to index.html's .section-divider. */
+  /* Section heading. The rules that used to flank it are gone; what is left
+     is the label alone, sitting on the left edge of the reading column.
+     It shares the column's font-size so its 62ch resolves to the same width
+     the paragraphs do — ch is relative to the element's own font-size, so a
+     heading at a different size would centre on a different width and the
+     left edges would not line up. */
   .section-divider {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 84vw;
+    /* Width, not padding: an 8vw padding inside a 62ch box would push the
+       label 8vw right of the paragraphs below it. This keeps the same left
+       edge as .case-block__body — 62ch when there is room, and the page
+       margin when there is not. */
+    width: min(62ch, 100% - 16vw);
     margin-left: auto;
     margin-right: auto;
-    gap: 32px;
-    margin-top: var(--space-16);
-    margin-bottom: var(--space-12);
+    font-size: 1.15rem;
+    /* Still far more air above than below — the heading belongs to the text
+       that follows it, not to the block it just left — but both tightened:
+       128/32 left the page feeling gappy. */
+    margin-top: calc(var(--space-8) + var(--space-2));
+    margin-bottom: var(--space-2);
   }
 
-  .divider-line {
-    flex: 1 1 0;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.3;
-  }
-
-  /* Section label takes the display face, but keeps its own 0.25em tracking
-     and weight 500 — the headline -0.02em would collapse the wide letter-
-     spacing that makes this read as a label rather than a headline. */
   .divider-label {
-    flex: 0 1 auto;
-    min-width: 0;
+    display: block;
     font-family: var(--font-display);
-    font-size: clamp(1rem, 4vw, 1.5rem);
-    letter-spacing: 0.25em;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow-wrap: break-word;
+    font-size: 1.8rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    text-align: left;
   }
 
-  /* Case body copy — same type tokens as .thesis__para (font-size, weight,
-     line-height, color), left-aligned for long-form reading instead of
-     centered, and static (this page has no scroll-linked reveals). */
+  /* Case body copy — one reading column, centred on the page, measured in
+     ch so the line length holds as the type scales. */
   .case-block {
     padding: 0 8vw;
     display: flex;
@@ -366,16 +258,18 @@
   }
 
   .case-block__body {
-    max-width: 760px;
+    max-width: 62ch;
+    margin-inline: auto;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    font-size: 1.15rem;
   }
 
   .case-block__para {
-    font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+    font-size: 1.15rem;
     font-weight: 400;
-    line-height: 1.6;
+    line-height: 1.7;
     color: #111111;
     text-align: left;
   }
@@ -388,25 +282,108 @@
      Margin is on the *top*: per design-spec.md §3 every photo follows the
      text it belongs to, so the gap it owns is the one separating it from
      that text, not from whatever comes after. */
-  .case-media {
-    max-width: 760px;
-    margin-top: var(--space-8);
+  /* Gallery — a fan of overlapping cards. Static composition: the geometry
+     is carried by two custom properties per card, --i (signed distance from
+     the centre card, which drives the sideways step and the rotation) and
+     --d (its absolute value, which drives the drop, the shrink and the
+     stacking). One shared transform rule reads them, so the whole fan is
+     retuned from the four --fan-* values rather than card by card. */
+  /* Full-bleed horizontally — the fan is the width of the page, not of the
+     760px reading column — with the top air of a section break. The space
+     below comes from the following divider's own margin, same as a text
+     block's does. */
+  /* Clipped horizontally on purpose. At the card size below the fan is
+     wider than the window — that is what "cards this big, overlapping this
+     much" costs — so the outermost cards run off both edges rather than the
+     page gaining a sideways scrollbar. The top padding is also what gives
+     the hover lift room to move without being cut. */
+  .case-gallery {
+    padding: var(--space-16) 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
   }
 
-  /* Hero sits outside any .case-block, so it needs its own 8vw inset — on
-     a separate wrapper box, not the same one as max-width:760px, otherwise
-     box-sizing:border-box eats the padding out of the 760px column instead
-     of adding it, and the hero image ends up narrower than the other three. */
-  .case-media-wrap {
-    padding: 0 8vw;
-  }
+  .case-gallery__fan {
+    /* Cards are 3:5 and all the same size — a hand of cards, not a scaled
+       stack. Everything about the fan comes out of one thing: each card is
+       rotated about a pivot far below the composition, shared by all of
+       them because they all sit at the same spot before rotating. The
+       sideways spread, the arc and the drop are that rotation, not three
+       separate offsets. */
+    --fan-card-h: 54vh;
+    --fan-card-w: calc(var(--fan-card-h) * 3 / 5);
+    /* 336% of card height puts the pivot ~2.9 card-heights below the top
+       edge. That distance is what converts the hand-set angles below into
+       the horizontal spread — deepen it and every gap widens without a
+       single angle changing, which is how the spacing went up 20% here.
+       The box is 1.22x the card so the outermost card, which both drops and
+       leans, still sits inside it: a rotated rectangle reaches lower than
+       its own bottom edge, which is what was clipping them before. */
+    --fan-pivot: 418%;
 
-  .case-media img {
-    display: block;
+    position: relative;
     width: 100%;
-    height: auto;
-    max-height: min(70vh, 640px);
+    height: calc(var(--fan-card-h) * 1.22);
+  }
+
+  .case-gallery__card {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--fan-card-w);
+    aspect-ratio: 3 / 5;
+    margin-left: calc(var(--fan-card-w) / -2);
+    border-radius: calc(var(--fan-card-w) * 0.07);
+    overflow: hidden;
+
+    /* --lift is hover's, applied before the rotation in the list so it
+       moves the card straight up the page rather than along its own tilted
+       axis. */
+    --lift: 0px;
+
+    transform-origin: 50% var(--fan-pivot);
+    transform: translateY(calc(-1 * var(--lift))) rotate(var(--angle));
+    transition: transform 0.3s ease-out;
+  }
+
+  /* Angles are set per card, not stepped by formula: the fan is deliberately
+     lopsided. The upright card (-2.6deg) sits left of centre, and the wide
+     gap between it and the next card is what leaves that one card ~76%
+     visible while the rest show under a third. z-index falls away from the
+     upright card on both sides, so every card is covered by its neighbour
+     towards the centre. */
+  .case-gallery__card:nth-child(1) { --angle: -13.5deg; z-index: 4; }
+  .case-gallery__card:nth-child(2) { --angle: -9.6deg;  z-index: 6; }
+  .case-gallery__card:nth-child(3) { --angle: -6.2deg;  z-index: 8; }
+  .case-gallery__card:nth-child(4) { --angle: 0deg;     z-index: 10; }
+  .case-gallery__card:nth-child(5) { --angle: 6.6deg;   z-index: 9; }
+  .case-gallery__card:nth-child(6) { --angle: 10deg;    z-index: 7; }
+  .case-gallery__card:nth-child(7) { --angle: 13.5deg;  z-index: 5; }
+
+  /* Must come after the per-card rules: those carry the same specificity
+     (one class plus one pseudo-class), so with hover written above them the
+     nth-child z-index won and the hovered card stayed buried. */
+  .case-gallery__card:hover {
+    --lift: 24px;
+    z-index: 20;
+  }
+
+  .case-gallery__card img {
+    width: 100%;
+    height: 100%;
+    display: block;
     object-fit: cover;
+  }
+
+  /* Seven cards can't keep that spacing on a phone — the fan closes up
+     instead, overlapping far more. */
+  @media (max-width: 700px) {
+    .case-gallery__fan {
+      --fan-card-h: min(30vh, 62vw);
+      --fan-pivot: 200%;
+    }
   }
 
   /* CTA — single call to action, styled with the same tokens as
@@ -444,10 +421,10 @@
     transform: translateX(4px);
   }
 
-  /* Footer back-link — the only navigational element while reading, now
-     that nav is static and scrolls away with the content (see .nav
-     above). Sized up from the header .case-back (0.95rem) to carry that
-     responsibility visibly, rather than reading as a small utility link. */
+  /* Footer back-link — a second route back, closing the page off. The nav
+     is fixed now (see .nav above), so this no longer carries the way back
+     on its own; it stays sized up so it reads as a deliberate closing
+     gesture rather than a small utility link. */
   .case-footer-nav {
     padding: 0 8vw var(--space-16);
   }
@@ -459,17 +436,18 @@
 
   @media (max-width: 768px) {
     .case-hero {
-      padding-top: var(--space-4);
-      padding-bottom: 60px;
-    }
+      /* The bar is shorter here (smaller type and padding), but it still
+         overlays — this padding has to carry the clearance too, or the
+         first line slides under it. */
+      --nav-clearance: 46px;
 
-    .case-hero__back {
-      margin-bottom: var(--space-8);
+      padding-top: var(--nav-clearance);
+      padding-bottom: var(--space-4);
     }
 
     .section-divider {
-      margin-top: 60px;
-      margin-bottom: 50px;
+      margin-top: 44px;
+      margin-bottom: var(--space);
     }
 
     .case-cta {
@@ -481,35 +459,13 @@
 </head>
 <body>
 
-  <nav class="nav" id="nav">
-    <a href="/" class="nav__logo">Jan Skotnicki</a>
-    <div class="nav__links">
-      <a href="/#pov" class="nav__link">Point of View</a>
-      <a href="/#proof" class="nav__link">Proof</a>
-      <a href="/#thesis" class="nav__link">Thesis</a>
-      <a href="/#contact" class="nav__link">Contact</a>
-    </div>
-    <button class="nav__burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
+  <nav class="nav">
+    <a class="nav__link nav__back" href="/#proof">← Back to Proof</a>
+    <span class="nav__title">Golf Tournament</span>
+    <a class="nav__link nav__forward" href="/#contact">Contact</a>
   </nav>
 
-  <div class="nav-mobile" id="navMobile">
-    <button class="nav-mobile__close" id="navClose" aria-label="Close menu">
-      <span></span>
-      <span></span>
-    </button>
-    <a href="/#pov" class="nav-mobile__link">Point of View</a>
-    <a href="/#proof" class="nav-mobile__link">Proof</a>
-    <a href="/#thesis" class="nav-mobile__link">Thesis</a>
-    <a href="/#contact" class="nav-mobile__link">Contact</a>
-  </div>
-
   <section class="case-hero">
-    <a class="case-back case-hero__back" href="/#proof">← Back to Proof</a>
-    <p class="case-hero__eyebrow">Case Study</p>
     <h1 class="case-hero__headline">
       <span class="hero__line">Same tournament, every season.</span>
       <span class="hero__line">Same guests on the fairway.</span>
@@ -522,19 +478,10 @@
       <span class="case-hero__meta-sep" aria-hidden="true">/</span>
       <span class="case-hero__meta-item"><span class="case-hero__meta-label">Role</span> Event marketing, CRM</span>
     </p>
-    <p class="case-hero__intro">Royal Kraków Golf &amp; Country Club × Lexus — event marketing, premium automotive</p>
   </section>
 
-  <div class="case-media-wrap">
-    <div class="case-media">
-      <img src="../../images/golf/golf-hero-nx-flags.jpg" alt="Lexus NX parked at the golf club, with two branded Lexus flags standing beside it">
-    </div>
-  </div>
-
   <div class="section-divider">
-    <span class="divider-line"></span>
     <span class="divider-label">Context</span>
-    <span class="divider-line"></span>
   </div>
 
   <section class="case-block" id="context">
@@ -545,9 +492,7 @@
   </section>
 
   <div class="section-divider">
-    <span class="divider-line"></span>
     <span class="divider-label">On the ground</span>
-    <span class="divider-line"></span>
   </div>
 
   <section class="case-block" id="on-the-ground">
@@ -557,15 +502,22 @@
       <p class="case-block__para">A test drive was there for anyone who asked. Nobody was asked if they wanted one.</p>
       <p class="case-block__para">And when the trophies were handed out, Lexus people were part of that ceremony — not spectators standing at the edge of it.</p>
     </div>
-    <div class="case-media">
-      <img loading="lazy" src="../../images/golf/golf-deckchairs.jpg" alt="Row of black, Lexus-branded deck chairs set up on the clubhouse terrace">
+  </section>
+
+  <section class="case-gallery">
+    <div class="case-gallery__fan">
+      <figure class="case-gallery__card"><img src="../../images/golf/golf-02.jpg" alt="" loading="lazy"></figure>
+      <figure class="case-gallery__card"><img src="../../images/proof/proof-25.jpg" alt="" loading="lazy"></figure>
+      <figure class="case-gallery__card"><img src="../../images/golf/golf-03.jpg" alt="" loading="lazy"></figure>
+      <figure class="case-gallery__card"><img src="../../images/proof/proof-07.jpg" alt="" loading="lazy"></figure>
+      <figure class="case-gallery__card"><img src="../../images/golf/golf-01.jpg" alt="" loading="lazy"></figure>
+      <figure class="case-gallery__card"><img src="../../images/proof/proof-16.jpg" alt="" loading="lazy"></figure>
+      <figure class="case-gallery__card"><img src="../../images/golf/golf-04.jpg" alt="" loading="lazy"></figure>
     </div>
   </section>
 
   <div class="section-divider">
-    <span class="divider-line"></span>
     <span class="divider-label">The problem</span>
-    <span class="divider-line"></span>
   </div>
 
   <section class="case-block" id="problem">
@@ -574,15 +526,10 @@
       <p class="case-block__para">It doesn't count the members who didn't take a test drive but noticed the car anyway. The regulars who've seen the Lexus cars at the club before and now expect them. The people playing a casual weekend round who are already the exact profile of buyer this brand wants — met on a day nobody was selling to them.</p>
       <p class="case-block__para">None of that fits in a spreadsheet. So none of it makes it to the next planning meeting.</p>
     </div>
-    <div class="case-media">
-      <img loading="lazy" src="../../images/golf/golf-players-green.jpg" alt="Golfers on the green near a sand bunker during the tournament">
-    </div>
   </section>
 
   <div class="section-divider">
-    <span class="divider-line"></span>
     <span class="divider-label">Omotenashi</span>
-    <span class="divider-line"></span>
   </div>
 
   <section class="case-block" id="omotenashi">
@@ -591,15 +538,10 @@
       <p class="case-block__para">This isn't built to convert a stranger in one afternoon. It's built to maintain a relationship with people who were already going to be there — club members worth more to the brand over time than one campaign to a cold audience for one weekend.</p>
       <p class="case-block__para">And because it's the same tournament, the same course, often the same faces, the value compounds. A guest who keeps seeing the Lexus cars at the club carries a different relationship with the brand than one who saw them once. A report built to describe one event has no field for recurrence at all.</p>
     </div>
-    <div class="case-media">
-      <img loading="lazy" src="../../images/golf/golf-materials-table.jpg" alt="Lexus brochures, water bottles and a business card laid out on a table at the club">
-    </div>
   </section>
 
   <div class="section-divider">
-    <span class="divider-line"></span>
     <span class="divider-label">What's measurable</span>
-    <span class="divider-line"></span>
   </div>
 
   <section class="case-block" id="measurable">
@@ -619,25 +561,5 @@
     <a class="case-back" href="/#proof">← Back to Proof</a>
   </div>
 
-  <script>
-    const navBurger = document.getElementById("navBurger");
-    const navMobile = document.getElementById("navMobile");
-    const navClose = document.getElementById("navClose");
-
-    function openMobileMenu() {
-      navMobile.classList.add("is-open");
-      navBurger.setAttribute("aria-expanded", "true");
-      document.body.style.overflow = "hidden";
-    }
-
-    function closeMobileMenu() {
-      navMobile.classList.remove("is-open");
-      navBurger.setAttribute("aria-expanded", "false");
-      document.body.style.overflow = "";
-    }
-
-    navBurger.addEventListener("click", openMobileMenu);
-    navClose.addEventListener("click", closeMobileMenu);
-  </script>
 </body>
 </html>
