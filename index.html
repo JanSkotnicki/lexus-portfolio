@@ -538,6 +538,17 @@
     overflow: hidden;
   }
 
+  /* The block the master timeline translates. It exists because the pinned
+     element cannot be moved — ScrollTrigger writes its own transform there
+     while the pin is engaged — so the headline and the paragraphs travel
+     together inside it instead. */
+  .thesis__stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
   .thesis__headline {
     max-width: 900px;
     font-family: var(--font-display);
@@ -1008,11 +1019,13 @@
 
   <section class="thesis" id="thesis">
     <div class="thesis__pin">
+      <div class="thesis__stack">
       <h2 class="thesis__headline">Anticipating the need before the guest knows it.</h2>
       <div class="thesis__body">
         <p class="thesis__para">The air conditioning runs before the guest opens the door. On warm days, no one steps into heat — the car has already adjusted to their comfort before they arrive. Water is already there. Navigation is already set. Nothing is prepared in front of the guest; everything is prepared before them.</p>
         <p class="thesis__para">A quiet soundtrack plays — present enough to soften the silence, quiet enough to never demand attention. It does more than fill space: it creates room to read what the guest needs, before they have to say it. Some want conversation. Others want to arrive in peace. The right atmosphere makes that clear without a single question asked.</p>
         <p class="thesis__para">For VIP transfers, umbrellas wait by the door — not because rain is expected, but because it might happen. Omotenashi is not reacting well. It is removing the moment where a guest would have had to ask at all.</p>
+      </div>
       </div>
     </div>
   </section>
@@ -1451,25 +1464,90 @@
     const thesisMM = gsap.matchMedia();
 
     thesisMM.add("(min-width: 768px)", () => {
+      const stack = document.querySelector(".thesis__stack");
+      const headline = document.querySelector(".thesis__headline");
+      const body = document.querySelector(".thesis__body");
+      const paras = gsap.utils.toArray(".thesis__para");
+
+      // Offsets have to be summed up to the pinned element, not read off
+      // offsetTop directly: GSAP puts a transform on .thesis__stack, which
+      // makes the stack itself the offsetParent of everything inside it, so a
+      // bare offsetTop silently drops the pin's own padding.
+      const pinEl = document.querySelector(".thesis__pin");
+      const offsetWithinPin = (el) => {
+        let y = 0, node = el;
+        while (node && node !== pinEl) { y += node.offsetTop; node = node.offsetParent; }
+        return y;
+      };
+
+      // How far the block travels: enough to leave the three paragraphs
+      // centred in the viewport once the headline is gone. Measured, not
+      // guessed, and re-measured on refresh (invalidateOnRefresh below) so a
+      // resize or a font swap can't strand it.
+      const stackTravel = () => offsetWithinPin(body) - (window.innerHeight - body.offsetHeight) / 2;
+      // What the headline needs on top of that to clear the top edge entirely
+      // — box included, not just faded out.
+      const headlineExit = () => offsetWithinPin(headline) + headline.offsetHeight + window.innerHeight * 0.05;
+
+      // Master timeline, 100 units so one unit is one percent of progress and
+      // the phase labels below read as the spec does. scrub: 1 keeps it 1:1
+      // with the scroll (a number, not `true`, gives it a 1s catch-up so fast
+      // flicks don't tear).
       thesisTl = gsap.timeline({
+        defaults: { ease: "none" },
         scrollTrigger: {
           trigger: ".thesis",
           start: "top top",
-          end: "+=150%",
-          scrub: true,
-          pin: ".thesis__pin"
+          end: "+=380%",
+          scrub: 1,
+          pin: ".thesis__pin",
+          invalidateOnRefresh: true
         }
       });
 
       thesisTl
-        .fromTo(".thesis__headline", { y: "12vh" }, { y: "0vh", ease: "none", duration: 0.4 })
-        .to(".thesis__para", {
-          opacity: 1,
-          y: 0,
-          ease: "none",
-          duration: 1,
-          stagger: 1.2
-        }, "+=0.2");
+        // ---- phase 1 (0-30%): para 2 arrives while the block is already
+        // moving. The block's travel is ONE tween spanning phases 1-3, so
+        // there is no seam where phases meet.
+        .addLabel("phase1", 0)
+        .fromTo(stack, { y: 0 }, { y: () => -stackTravel(), duration: 75 }, 0)
+        // Paragraphs 1 and 2 both arrive inside phase 1, one after the other.
+        // Para 1 used to be set visible outside the timeline, which left it
+        // sitting in frame before the pin even engaged; it now enters on the
+        // same terms as the other two, from the opacity:0 / translateY(30px)
+        // start state the CSS already gives every paragraph.
+        .fromTo(paras[0], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 15 }, 0)
+        .fromTo(paras[1], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 15 }, 15)
+
+        // ---- phase 2 (30-55%): the headline leaves — its own translate on
+        // top of the block's, plus a fade, so it is gone by 55%.
+        .addLabel("phase2", 30)
+        // Duration 12 rather than 25: the exit is twice as quick and is over
+        // by 42%, leaving the rest of phase 2 to the block's own travel. The
+        // label — and phase 3 with it — stays at 55.
+        .to(headline, { opacity: 0, y: () => -headlineExit(), duration: 12 }, 30)
+
+        // ---- phase 3 (55-75%): para 3 arrives as the block settles.
+        .addLabel("phase3", 55)
+        // 12 rather than 20: paragraph 3 lands by 67% instead of 75%. The
+        // block's own travel still ends at 75, so the phase closes where it
+        // did and phases 4 and 5 keep their positions.
+        .fromTo(paras[2], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 12 }, 55)
+
+        // ---- phase 4 (75-90%): hold. An empty tween consumes timeline time,
+        // and therefore scroll distance, while nothing moves. It has to be
+        // scroll distance rather than a CSS delay or a timer — anything on a
+        // wall clock desynchronises from a scrubbed timeline the moment the
+        // visitor scrolls at their own pace.
+        .addLabel("phase4", 75)
+        .to({}, { duration: 15 }, 75)
+
+        // ---- phase 5 (90-100%): the release. ScrollTrigger can only unpin at
+        // `end`, so this last stretch carries the block onward at the pace it
+        // will keep once the page scrolls normally, and the pin lets go into
+        // that movement instead of cutting from a frozen frame.
+        .addLabel("phase5", 90)
+        .to(stack, { y: () => -stackTravel() - window.innerHeight * 0.12, duration: 10 }, 90);
     });
 
     thesisMM.add("(max-width: 767px)", () => {
