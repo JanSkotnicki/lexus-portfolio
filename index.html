@@ -1308,13 +1308,20 @@
           }
           slot.el.style.opacity = slot.fade * slot.level;
 
-          // Travelled clear of the section: recycle it now and restart its
-          // cycle, so it fades back in somewhere new instead of popping.
+          // Recycling waits until the tile is invisible. It used to respawn
+          // AND restart the cycle the moment a tile cleared the section, and
+          // since a tile's position is scroll-driven, a fast scroll pushed
+          // tiles past that edge several times a second — each crossing
+          // yanking a mid-fade tile back to a fresh cycle somewhere else,
+          // which is what read as flicker. The fade itself was never the
+          // problem: it runs on its own clock at a fixed duration. Now a tile
+          // that flies out of frame while visible is simply left alone; its
+          // cycle fades it out and the timeline's own onRepeat gives it a new
+          // position. At speed that means a tile may sit out a pass rather
+          // than blink through one.
           const h = slot.el.offsetHeight;
-          if (slot.y + h < -h * 0.5 || slot.y > box.height + h * 0.5) {
-            proofRespawn(slot);
-            slot.tl.restart(true);
-          }
+          const outOfView = slot.y + h < -h * 0.5 || slot.y > box.height + h * 0.5;
+          if (outOfView && slot.fade < 0.02) proofRespawn(slot);
         });
       }
 
