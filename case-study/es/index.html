@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Lexus ES — Case Study | Jan Skotnicki</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Display face for headlines (design-spec.md §1). Body copy stays on the
+       system stack below — only headings switch. */
+    --font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+    --headline-size: clamp(1.8rem, 4.8vw, 5.2rem);
+    --caption-size: calc(var(--headline-size) / 5.5);
+    --headline-statement: clamp(2rem, 5vw, 3.5rem);
+
+    --space: 8px;
+    --space-2: calc(var(--space) * 2);   /* 16px */
+    --space-4: calc(var(--space) * 4);   /* 32px */
+    --space-8: calc(var(--space) * 8);   /* 64px */
+    --space-12: calc(var(--space) * 12); /* 96px */
+    --space-16: calc(var(--space) * 16); /* 128px */
+    --space-24: calc(var(--space) * 24); /* 192px */
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    background: #ffffff;
+    color: #111111;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* Nav — fixed on this page, and deliberately so: it stays on screen for
+     the whole read. Same bar as index.html (its own #F4F2ED surface, 1px
+     frame, same padding and type sizes) but carrying three things instead of
+     the site menu: the way back, where you are, and the one step onward. */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 20px clamp(24px, 4vw, 32px);
+    background: #F4F2ED;
+    border: 1px solid #1A1917;
+    color: #1A1917;
+  }
+
+  .nav__back {
+    justify-self: start;
+  }
+
+  .nav__forward {
+    justify-self: end;
+  }
+
+  .nav__link {
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition: opacity 0.2s ease;
+  }
+
+  .nav__link:hover {
+    opacity: 0.6;
+  }
+
+  /* Centre cell of the grid, so it is centred on the bar itself rather than
+     on the space left between the two links. */
+  .nav__title {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .nav {
+      padding: 14px 16px;
+    }
+
+    .nav__link {
+      font-size: 0.8rem;
+    }
+
+    .nav__title {
+      font-size: 0.85rem;
+    }
+  }
+
+  /* Back link — same font weight/size as .nav__link, same hover language
+     as .contact__link (translate on hover), reused rather than invented. */
+  .case-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #111111;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    transition: transform 250ms ease-out, opacity 0.2s ease;
+  }
+
+  .case-back:hover {
+    transform: translateX(-4px);
+    opacity: 0.7;
+  }
+
+  /* Hero — text-led opening per design-spec.md §3: title, then a one-line
+     metadata row. It holds the first screen and centres the pair inside it
+     instead of padding them apart; the top padding is only the fixed nav's
+     clearance, since that bar overlays the document rather than taking space
+     in it. */
+  .case-hero {
+    --nav-clearance: 60px;
+
+    width: 100%;
+    min-height: 100vh;
+    padding: var(--nav-clearance) 8vw var(--space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Title column — full width of the content column (capped so it doesn't
+     sprawl on ultrawide), centered, with the metadata nested under it at a
+     narrower width. */
+  .case-hero__headline {
+    display: block;
+    width: 100%;
+    max-width: 1100px;
+  }
+
+  .hero__line {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--headline-size);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  /* Metadata — Client / Venue / Role on one line under the title. Wraps to
+     multiple rows only when the viewport can't hold it. */
+  .case-hero__meta {
+    margin-top: var(--space-8);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: #6b6b6b;
+  }
+
+  .case-hero__meta-item {
+    white-space: nowrap;
+  }
+
+  .case-hero__meta-label {
+    opacity: 0.65;
+  }
+
+  .case-hero__meta-sep {
+    opacity: 0.4;
+  }
+
+  /* The one-line row needs ~1100px of viewport to hold all three pairs.
+     Below that it would wrap mid-row and strand a slash at the end of a
+     line, so stack the pairs instead and drop the separators — they only
+     do work while the items sit side by side. */
+  @media (max-width: 1100px) {
+    .case-hero__meta {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .case-hero__meta-sep {
+      display: none;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .case-hero__meta {
+      margin-top: 5vh;
+    }
+
+    .case-hero__meta-item {
+      white-space: normal;
+    }
+  }
+
+  /* Section heading — the label alone, sitting on the left edge of the
+     reading column. It shares the column's font-size so its 62ch resolves to
+     the same width the paragraphs do — ch is relative to the element's own
+     font-size, so a heading at a different size would centre on a different
+     width and the left edges would not line up. */
+  .section-divider {
+    /* Width, not padding: an 8vw padding inside a 62ch box would push the
+       label 8vw right of the paragraphs below it. This keeps the same left
+       edge as .case-block__body — 62ch when there is room, and the page
+       margin when there is not. */
+    width: min(62ch, 100% - 16vw);
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 1.15rem;
+    /* Far more air above than below — the heading belongs to the text that
+       follows it, not to the block it just left. */
+    margin-top: calc(var(--space-8) + var(--space-2));
+    margin-bottom: var(--space-2);
+  }
+
+  .divider-label {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  /* Case body copy — one reading column, centred on the page, measured in
+     ch so the line length holds as the type scales. */
+  .case-block {
+    padding: 0 8vw;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .case-block__body {
+    max-width: 62ch;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    font-size: 1.15rem;
+  }
+
+  .case-block__para {
+    font-size: 1.15rem;
+    font-weight: 400;
+    line-height: 1.7;
+    color: #111111;
+    text-align: left;
+  }
+
+  /* Gallery — an accordion of five equal panels that redistribute width on
+     hover. Where Golf's fan is a static composition, this one is a single
+     animated quantity: every panel is a flex child with `flex-basis: 0` and
+     an animated `flex-grow`, so the row's whole width is always divided
+     between the five according to their grow values and nothing is ever
+     positioned by hand.
+
+     That is also why there is no JS here at all. Each panel transitions its
+     own flex-grow independently, so sweeping the mouse across the row makes
+     them open and close in sequence — the browser interpolates each one from
+     wherever it currently sits, which a mousemove handler recomputing
+     positions could not do without fighting itself. */
+  .case-gallery {
+    padding: var(--space-16) 8vw 0;
+  }
+
+  .case-gallery__accordion {
+    /* One grow value drives the whole layout. Hovered panel width resolves
+       to G / (G + 4) of the row — 4.4 puts it at ~52%, inside the 50-55%
+       the design asks for — and the remaining four split the rest evenly,
+       which is what reads as the row "parting" around the active panel. */
+    --acc-grow: 4.4;
+    --acc-blur: 7px;
+    /* Fast to open, slow to arrive: the curve spends most of its time in the
+       last third of the distance. */
+    --acc-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --acc-dur: 0.5s;
+
+    display: flex;
+    gap: 2px;
+    width: 100%;
+    height: min(72vh, 680px);
+  }
+
+  .case-gallery__panel {
+    position: relative;
+    flex: 1 1 0%;
+    /* Without this a flex item refuses to shrink below its content's
+       intrinsic width, and the four inactive panels would stop parting
+       before the active one reached its full width. */
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 4px;
+    transition: flex-grow var(--acc-dur) var(--acc-ease);
+  }
+
+  .case-gallery__panel:hover {
+    flex-grow: var(--acc-grow);
+  }
+
+  .case-gallery__panel img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    /* Scaled up while blurred: a blur samples past the element's edges, so
+       at scale 1 the panel would show a soft transparent fringe down both
+       sides. The scale hides it, and unwinding it on hover doubles as the
+       image settling into place as it sharpens. */
+    transform: scale(1.08);
+    filter: blur(var(--acc-blur)) brightness(0.72);
+    transition: filter var(--acc-dur) var(--acc-ease),
+                transform var(--acc-dur) var(--acc-ease);
+  }
+
+  .case-gallery__panel:hover img {
+    transform: scale(1);
+    filter: blur(0px) brightness(1);
+  }
+
+  /* Caption — only legible while its panel is open. It carries its own
+     gradient rather than relying on the photograph being dark at the bottom;
+     the scrim is part of the caption box, so it fades in and out with it. */
+  .case-gallery__caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: var(--space-8) var(--space-2) var(--space-2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    /* Three stops rather than two: a straight fade to transparent leaves the
+       text sitting where the scrim is already thin, which is legible over the
+       dark showroom frames but not over the white table or the sunlit grass.
+       Holding the ramp darker through the bottom third covers the bright
+       photographs without the scrim reading as a band across the panel. */
+    background: linear-gradient(to top,
+      rgba(0, 0, 0, 0.72) 0%,
+      rgba(0, 0, 0, 0.34) 38%,
+      rgba(0, 0, 0, 0) 100%);
+    opacity: 0;
+    transform: translateY(6px);
+    pointer-events: none;
+    transition: opacity var(--acc-dur) var(--acc-ease),
+                transform var(--acc-dur) var(--acc-ease);
+  }
+
+  .case-gallery__panel:hover .case-gallery__caption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Dots — mobile only. A position readout, not a control: the carousel is
+     driven by the finger, so these are inert and hidden from assistive tech
+     rather than being buttons that duplicate scrolling. */
+  .case-gallery__dots {
+    display: none;
+    justify-content: center;
+    gap: 8px;
+    padding-top: var(--space-2);
+  }
+
+  .case-gallery__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1A1917;
+    opacity: 0.22;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  }
+
+  .case-gallery__dot.is-active {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+
+  /* Mobile — a carousel, not a small-screen accordion. Hover is the whole
+     desktop mechanism and there isn't one here, so the row stops dividing its
+     width between five panels and becomes a scroller instead: one slide per
+     frame, snapped, moved by the finger.
+
+     The snapping is the browser's own (scroll-snap-type), not a library and
+     not a touchmove handler — native scrolling is what stays smooth under a
+     finger, and it leaves the page's scrolling to the page.
+
+     Every hover-dependent value is reset rather than overridden in place, so
+     a sticky :hover left behind by a tap can't leave a slide stuck open. */
+  @media (max-width: 800px) {
+    /* Full-bleed: the carousel is the width of the window, not of the page
+       column, so the section drops its 8vw side padding here. */
+    .case-gallery {
+      padding: var(--space-12) 0 0;
+    }
+
+    .case-gallery__accordion {
+      flex-direction: row;
+      gap: 0;
+      height: auto;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      /* The scrollbar is the one part of native scrolling worth hiding — the
+         dots below already say where you are. */
+      scrollbar-width: none;
+    }
+
+    .case-gallery__accordion::-webkit-scrollbar {
+      display: none;
+    }
+
+    .case-gallery__panel,
+    .case-gallery__panel:hover {
+      flex: 0 0 100%;
+      width: 100%;
+      height: auto;
+      scroll-snap-align: center;
+      /* One slide per swipe: without this a fast flick skips several. */
+      scroll-snap-stop: always;
+      border-radius: 0;
+    }
+
+    .case-gallery__panel img,
+    .case-gallery__panel:hover img {
+      height: 62vh;
+      transform: none;
+      filter: none;
+      border-radius: 0;
+    }
+
+    /* The caption leaves the photograph and sits under it, in the page. It
+       travels inside its own slide, so whatever is on screen is by definition
+       the active caption — no JS keeps them in sync. Off the photo it no
+       longer needs the scrim or the white ink. */
+    .case-gallery__caption,
+    .case-gallery__panel:hover .case-gallery__caption {
+      position: static;
+      opacity: 1;
+      transform: none;
+      padding: var(--space-2) 8vw 0;
+      background: none;
+      color: #6b6b6b;
+      text-shadow: none;
+    }
+
+    .case-gallery__dots {
+      display: flex;
+    }
+  }
+
+  /* CTA — single call to action, styled with the same tokens as
+     .contact__headline / .contact__link, adapted to a light background. */
+  .case-cta {
+    padding: var(--space-16) 8vw var(--space-24);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .case-cta__line {
+    max-width: 700px;
+    font-family: var(--font-display);
+    font-size: var(--headline-statement);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+  }
+
+  .case-cta__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #111111;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 250ms ease-out;
+  }
+
+  .case-cta__link:hover {
+    transform: translateX(4px);
+  }
+
+  /* Footer back-link — a second route back, closing the page off. The nav
+     is fixed now (see .nav above), so this no longer carries the way back
+     on its own; it stays sized up so it reads as a deliberate closing
+     gesture rather than a small utility link. */
+  .case-footer-nav {
+    padding: 0 8vw var(--space-16);
+  }
+
+  .case-footer-nav .case-back {
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  @media (max-width: 768px) {
+    .case-hero {
+      /* The bar is shorter here (smaller type and padding), but it still
+         overlays — this padding has to carry the clearance too, or the
+         first line slides under it. */
+      --nav-clearance: 46px;
+
+      /* Neither full-screen nor vertically centred on a phone. Centring the
+         pair inside 100vh left a few hundred px of dead space above the
+         headline and below the metadata, and the void that opened up before
+         the first section read as that section being oversized rather than as
+         air. The hero is now only as tall as it needs to be and sits at the
+         top; the space below it is spent deliberately instead. Same treatment
+         as the Golf case study, which this page is built on. */
+      min-height: auto;
+      justify-content: flex-start;
+      padding-top: calc(var(--nav-clearance) + var(--space-8));
+      padding-bottom: var(--space-12);
+    }
+
+    .section-divider {
+      margin-top: 44px;
+      margin-bottom: var(--space);
+    }
+
+    .case-cta {
+      padding-top: var(--space-12);
+      /* 128px here left the back-link stranded a screen below the call to
+         action it belongs under. The link closes the page off, so it reads as
+         part of that ending rather than as something washed up at the bottom
+         of the document. */
+      padding-bottom: var(--space-4);
+    }
+
+    /* Same reason, at the other end: the page no longer trails 128px of empty
+       paper after its last line. */
+    .case-footer-nav {
+      padding-bottom: var(--space-8);
+    }
+  }
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="nav__link nav__back" href="/#proof">← Back to Proof</a>
+    <span class="nav__title">ES</span>
+    <a class="nav__link nav__forward" href="/#contact">Contact</a>
+  </nav>
+
+  <section class="case-hero">
+    <h1 class="case-hero__headline">
+      <span class="hero__line">[TODO — headline line 1]</span>
+      <span class="hero__line">[TODO — headline line 2]</span>
+      <span class="hero__line">[TODO — headline line 3]</span>
+    </h1>
+    <p class="case-hero__meta">
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Client</span> [TODO]</span>
+      <span class="case-hero__meta-sep" aria-hidden="true">/</span>
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Venue</span> [TODO]</span>
+      <span class="case-hero__meta-sep" aria-hidden="true">/</span>
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Role</span> [TODO]</span>
+    </p>
+  </section>
+
+  <div class="section-divider">
+    <span class="divider-label">Context</span>
+  </div>
+
+  <section class="case-block" id="context">
+    <div class="case-block__body">
+      <p class="case-block__para">[TODO — Context, paragraph 1]</p>
+      <p class="case-block__para">[TODO — Context, paragraph 2]</p>
+    </div>
+  </section>
+
+  <div class="section-divider">
+    <span class="divider-label">On the ground</span>
+  </div>
+
+  <section class="case-block" id="on-the-ground">
+    <div class="case-block__body">
+      <p class="case-block__para">[TODO — On the ground, paragraph 1]</p>
+      <p class="case-block__para">[TODO — On the ground, paragraph 2]</p>
+      <p class="case-block__para">[TODO — On the ground, paragraph 3]</p>
+    </div>
+  </section>
+
+  <section class="case-gallery">
+    <!-- Panel order is a composition, not the file numbering: es-01 sits in the
+         centre, es-04/es-05 flank it, es-02/es-03 sit on the outside. Left to
+         right that reads 2 - 4 - 1 - 5 - 3, which is why the numbers here look
+         shuffled. Each caption stays attached to its own photograph rather than
+         being renumbered to match position, so "caption 3" means the same
+         picture before and after any further reordering. -->
+    <div class="case-gallery__accordion">
+      <figure class="case-gallery__panel">
+        <img src="../../images/es/es-02.jpg" alt="" loading="lazy">
+        <figcaption class="case-gallery__caption">[TODO — caption 2]</figcaption>
+      </figure>
+      <figure class="case-gallery__panel">
+        <img src="../../images/es/es-04.jpg" alt="" loading="lazy">
+        <figcaption class="case-gallery__caption">[TODO — caption 4]</figcaption>
+      </figure>
+      <figure class="case-gallery__panel">
+        <img src="../../images/es/es-01.jpg" alt="" loading="lazy">
+        <figcaption class="case-gallery__caption">[TODO — caption 1]</figcaption>
+      </figure>
+      <figure class="case-gallery__panel">
+        <img src="../../images/es/es-05.jpg" alt="" loading="lazy">
+        <figcaption class="case-gallery__caption">[TODO — caption 5]</figcaption>
+      </figure>
+      <figure class="case-gallery__panel">
+        <img src="../../images/es/es-03.jpg" alt="" loading="lazy">
+        <figcaption class="case-gallery__caption">[TODO — caption 3]</figcaption>
+      </figure>
+    </div>
+    <div class="case-gallery__dots" aria-hidden="true">
+      <span class="case-gallery__dot"></span>
+      <span class="case-gallery__dot"></span>
+      <span class="case-gallery__dot"></span>
+      <span class="case-gallery__dot"></span>
+      <span class="case-gallery__dot"></span>
+    </div>
+  </section>
+
+  <div class="section-divider">
+    <span class="divider-label">The problem</span>
+  </div>
+
+  <section class="case-block" id="problem">
+    <div class="case-block__body">
+      <p class="case-block__para">[TODO — The problem, paragraph 1]</p>
+      <p class="case-block__para">[TODO — The problem, paragraph 2]</p>
+      <p class="case-block__para">[TODO — The problem, paragraph 3]</p>
+    </div>
+  </section>
+
+  <div class="section-divider">
+    <span class="divider-label">Omotenashi</span>
+  </div>
+
+  <section class="case-block" id="omotenashi">
+    <div class="case-block__body">
+      <p class="case-block__para">[TODO — Omotenashi, paragraph 1]</p>
+      <p class="case-block__para">[TODO — Omotenashi, paragraph 2]</p>
+      <p class="case-block__para">[TODO — Omotenashi, paragraph 3]</p>
+    </div>
+  </section>
+
+  <div class="section-divider">
+    <span class="divider-label">What's measurable</span>
+  </div>
+
+  <section class="case-block" id="measurable">
+    <div class="case-block__body">
+      <p class="case-block__para">[TODO — What's measurable, paragraph 1]</p>
+      <p class="case-block__para">[TODO — What's measurable, paragraph 2]</p>
+      <p class="case-block__para">[TODO — What's measurable, paragraph 3]</p>
+    </div>
+  </section>
+
+  <section class="case-cta">
+    <p class="case-cta__line">[TODO — closing statement]</p>
+    <a class="case-cta__link" href="/#contact">[TODO — CTA label] →</a>
+  </section>
+
+  <div class="case-footer-nav">
+    <a class="case-back" href="/#proof">← Back to Proof</a>
+  </div>
+
+
+  <script>
+  (() => {
+    /* How long each slide holds before the carousel advances itself, in ms.
+       Calibration knob — this is the only place the cadence is set. */
+    const AUTOPLAY_MS = 4000;
+
+    /* How long we keep ignoring scroll events after starting a scroll of our
+       own. Comfortably longer than a smooth scroll of one viewport, so our own
+       movement is never mistaken for the visitor's — and short enough that a
+       missing `scrollend` costs one second of deafness rather than all of it. */
+    const SETTLE_MS = 1000;
+
+    const scroller = document.querySelector('.case-gallery__accordion');
+    const dots = [...document.querySelectorAll('.case-gallery__dot')];
+    if (!scroller || !dots.length) return;
+
+    const slides = [...scroller.querySelectorAll('.case-gallery__panel')];
+    const mobile = matchMedia('(max-width: 800px)');
+    const stillness = matchMedia('(prefers-reduced-motion: reduce)');
+
+    let timer = null;
+    let settle = null;
+    /* Once true, stays true. Taking over is a one-way door — see stop(). */
+    let surrendered = false;
+    /* True only while a scroll we started is still running. */
+    let programmatic = false;
+
+    /* --- position readout ---------------------------------------------
+       Read off the scroller's own position rather than watched with an
+       IntersectionObserver: the index is already needed for autoplay, a snap
+       carousel is always at a whole multiple of its width, and computing it
+       means the dots are correct on the first paint instead of only after an
+       observer's first callback. */
+    const indexNow = () => Math.round(scroller.scrollLeft / scroller.clientWidth);
+
+    function paintDots() {
+      const i = indexNow();
+      dots.forEach((dot, n) => dot.classList.toggle('is-active', n === i));
+    }
+
+    /* --- autoplay ------------------------------------------------------ */
+
+    /* Lowering the guard is always time-boxed, and `scrollend` only lowers it
+       sooner where the browser has it. It must not be the sole trigger: a
+       scroll that is interrupted, or that lands where the scroller already
+       was, can swallow the event entirely, and a guard that never clears
+       leaves the carousel ignoring the visitor's own scrolling for good —
+       autoplay would then never hand over control. The listener is installed
+       once here rather than per advance, so it cannot pile up unconsumed. */
+    function lowerGuard() {
+      clearTimeout(settle);
+      programmatic = false;
+    }
+
+    if ('onscrollend' in window) {
+      scroller.addEventListener('scrollend', lowerGuard, { passive: true });
+    }
+
+    function raiseGuard() {
+      programmatic = true;
+      clearTimeout(settle);
+      settle = setTimeout(lowerGuard, SETTLE_MS);
+    }
+
+    function advance() {
+      if (surrendered) return;
+      const next = (indexNow() + 1) % slides.length;
+      raiseGuard();
+      scroller.scrollTo({ left: next * scroller.clientWidth, behavior: 'smooth' });
+    }
+
+    function start() {
+      if (surrendered || timer || !mobile.matches || stillness.matches) return;
+      timer = setInterval(advance, AUTOPLAY_MS);
+    }
+
+    function pauseTimer() {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    /* The visitor has taken control. There is deliberately no path back from
+       here: no resume-after-idle timeout, no restart on breakpoint change.
+       Having the gallery start moving again under a finger that just moved it
+       is the thing this is written to prevent. */
+    function stop() {
+      surrendered = true;
+      pauseTimer();
+      clearTimeout(settle);
+    }
+
+    /* Real input only — none of these can be raised by scrollTo above. */
+    for (const type of ['touchstart', 'pointerdown', 'wheel', 'keydown']) {
+      scroller.addEventListener(type, stop, { passive: true, once: true });
+    }
+
+    /* Scrolling the container counts too, but our own scrolling does not. */
+    scroller.addEventListener('scroll', () => {
+      paintDots();
+      if (programmatic) return;
+      stop();
+    }, { passive: true });
+
+    /* Desktop is the accordion and has no carousel to play; only the mobile
+       breakpoint runs a timer. Crossing back down after surrendering stays
+       surrendered, which is the point. */
+    paintDots();
+    mobile.addEventListener('change', () => (mobile.matches ? start() : pauseTimer()));
+    start();
+  })();
+  </script>
+
+</body>
+</html>
