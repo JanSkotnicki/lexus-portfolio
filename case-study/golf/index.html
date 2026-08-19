@@ -441,8 +441,16 @@
          first line slides under it. */
       --nav-clearance: 46px;
 
-      padding-top: var(--nav-clearance);
-      padding-bottom: var(--space-4);
+      /* Neither full-screen nor vertically centred on a phone. Centring the
+         pair inside 100vh left ~292px of dead space above the headline and
+         ~278px below the metadata, and the 322px that opened up before the
+         first section read as that section being oversized rather than as
+         air. The hero is now only as tall as it needs to be and sits at the
+         top; the space below it is spent deliberately instead. */
+      min-height: auto;
+      justify-content: flex-start;
+      padding-top: calc(var(--nav-clearance) + var(--space-8));
+      padding-bottom: var(--space-12);
     }
 
     .section-divider {
@@ -452,7 +460,17 @@
 
     .case-cta {
       padding-top: var(--space-12);
-      padding-bottom: var(--space-16);
+      /* 128px here left the back-link stranded a screen below the call to
+         action it belongs under. The link closes the page off, so it reads as
+         part of that ending rather than as something washed up at the bottom
+         of the document. */
+      padding-bottom: var(--space-4);
+    }
+
+    /* Same reason, at the other end: the page no longer trails 128px of empty
+       paper after its last line. */
+    .case-footer-nav {
+      padding-bottom: var(--space-8);
     }
   }
 </style>

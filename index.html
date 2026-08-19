@@ -868,6 +868,14 @@
     }
   }
 
+  /* Hero button — the same object as .proof__cta (24px radius, same padding,
+     type and accent), but a real <a> rather than a span inside a tile, so it
+     carries its own text-decoration. Mobile only: it is hidden at every width
+     above the breakpoint, where the hero is unchanged. */
+  .hero__cta {
+    display: none;
+  }
+
   /* Mobile-only fixes: spacing + Thesis pin disabled (see matchMedia in <script>). Desktop untouched. */
   @media (max-width: 767px) {
     .hero {
@@ -875,7 +883,54 @@
       justify-content: flex-start;
       padding-top: 10vh;
       padding-bottom: 80px;
+      /* Centred on this breakpoint only. The headline and caption both set
+         text-align: left of their own accord, so both are overridden below
+         rather than relying on inheritance from here. */
+      align-items: center;
+      text-align: center;
     }
+
+    .hero__line {
+      text-align: center;
+    }
+
+    /* The caption said "Jan Skotnicki — event marketing, premium automotive"
+       directly above a button reading "Jan Skotnicki". The button carries the
+       name on this breakpoint, so the caption is the duplicate and goes.
+       Hidden rather than deleted: above the breakpoint there is no button, so
+       the caption is still the only thing naming him there. */
+    .hero__caption {
+      display: none;
+    }
+
+    .hero__cta {
+      margin-top: var(--space-4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-height: 44px;
+      padding: 0.7rem 1.6rem;
+      border: 1px solid rgba(26, 25, 23, 0.15);
+      border-radius: 24px;
+      background-color: transparent;
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: #8C7A5B;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Tiles are sized in vw, so at 390px the largest came out ~39px wide — a
+       photograph small enough to read as a smudge. Scaled up, and pointedly
+       not by one shared factor: the large tiles gain most and the small ones
+       least, so the spread between the three sizes widens instead of the
+       whole field simply inflating. That spread is the depth cue, and the
+       size class is also what PROOF_SPEED reads to decide how fast a tile
+       drifts — so the three classes have to stay three. */
+    .proof-intro__tile--lg { width: 28vw; }
+    .proof-intro__tile--md { width: 17vw; }
+    .proof-intro__tile--sm { width: 11vw; }
 
     .pov {
       padding-top: 1vh;
@@ -883,6 +938,9 @@
 
     .proof {
       padding-top: 30px;
+      /* Proof used to end flush against Thesis: its own bottom padding was 0
+         and the only gap was .thesis__pin's 40px. This is the rest of it. */
+      padding-bottom: var(--space-12);
     }
 
     .thesis {
@@ -940,6 +998,7 @@
       <span class="hero__line" data-line>And nothing to put in a report.</span>
     </h1>
     <p class="hero__caption">Jan Skotnicki — event marketing, premium automotive</p>
+    <a class="hero__cta" href="#portrait">Jan Skotnicki</a>
   </section>
 
   <section class="pov" id="pov">
@@ -952,7 +1011,7 @@
       </div>
     </div>
 
-    <div class="pov__block pov__block--flip">
+    <div class="pov__block pov__block--flip" id="portrait">
       <div class="pov__frame">
         <img src="images/portrait.jpg?v=3" alt="Portrait photo">
       </div>
@@ -1648,7 +1707,15 @@
     // hardcoded px offset, so it stays correct at any screen height/nav
     // height, including mobile).
     const navScrollOffsets = { thesis: 100, contact: 100 };
-    const imageAnchorSelectors = { pov: ".pov__frame img", proof: ".proof__frame img" };
+    const imageAnchorSelectors = {
+      pov: ".pov__frame img",
+      proof: ".proof__frame img",
+      // Same section as #pov, but deliberately its own entry: #pov's
+      // selector resolves to the first .pov__frame img on the page, which
+      // is the event photo in block 1. The hero button is named for Jan,
+      // so it has to land on block 2.
+      portrait: ".pov__block--flip .pov__frame img"
+    };
 
     // Shared by the animated (click) and instant (hash-on-load) paths below,
     // so both land on exactly the same pixel.
@@ -1701,7 +1768,7 @@
     navBurger.addEventListener("click", openMobileMenu);
     navClose.addEventListener("click", closeMobileMenu);
 
-    document.querySelectorAll(".nav__link, .nav-mobile__link").forEach((link) => {
+    document.querySelectorAll(".nav__link, .nav-mobile__link, .hero__cta").forEach((link) => {
       link.addEventListener("click", (e) => {
         e.preventDefault();
         const hash = link.getAttribute("href");
