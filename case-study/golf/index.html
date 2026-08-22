@@ -37,7 +37,7 @@
   }
 
   body {
-    background: #ffffff;
+    background: #F4F2ED;
     color: #111111;
     font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
@@ -134,12 +134,15 @@
     --nav-clearance: 60px;
 
     width: 100%;
-    min-height: 100vh;
-    padding: var(--nav-clearance) 8vw var(--space-4);
+    /* Deliberately short of the window: the space left below the hero is
+       where the panel's top edge waits, and the script measures exactly that
+       gap to decide how far the panel has to travel. */
+    min-height: 72vh;
+    padding: calc(var(--nav-clearance) + var(--space-8)) 8vw var(--space-4);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     text-align: center;
   }
 
@@ -386,6 +389,68 @@
     }
   }
 
+  /* Reveal panel — everything below the hero lives inside it: the sections,
+     the gallery and the closing block. It starts with its top edge resting on
+     the bottom of the window and is drawn upward by scroll (see the script at
+     the foot of this file), so the first section arrives on a surface lifted
+     into place rather than fading in on the spot.
+
+     Once it has arrived it stops being an effect and simply is the page —
+     every section below the fold sits on this colour, and nothing returns to
+     the body's. The shade is a few percent lighter and warmer than the body's
+     #F4F2ED: enough for the leading edge to read as a real edge, not enough
+     to read as a change of colour. */
+  .reveal-panel {
+    position: relative;
+    background: #F8F7F2;
+    /* Also stops the first divider's own top margin collapsing through the
+       panel's top edge and dragging the surface down with it. */
+    padding-top: var(--space-16);
+  }
+
+  .reveal-panel > .section-divider:first-of-type {
+    margin-top: 0;
+  }
+
+  /* Arrow — a line and a head, nothing around them. It is a child of the
+     panel and sits just above its leading edge, so it rides up with the panel
+     rather than being animated separately; the script only fades it. */
+  .reveal-arrow {
+    position: absolute;
+    left: 50%;
+    top: -110px;
+    transform: translateX(-50%);
+    display: block;
+    padding: 12px;
+    border: 0;
+    background: none;
+    color: #6B6862;
+    cursor: pointer;
+    line-height: 0;
+    /* Hover moves the colour, never the opacity: opacity is the scrub's, and
+       a CSS transition on it would smooth every step of the scroll into a lag
+       instead of letting the arrow track the panel exactly. */
+    transition: color 0.2s ease;
+  }
+
+  .reveal-arrow:hover {
+    color: #1A1917;
+  }
+
+  .reveal-arrow svg {
+    display: block;
+  }
+
+  @media (max-width: 800px) {
+    .reveal-arrow {
+      top: -84px;
+    }
+
+    .reveal-arrow svg {
+      height: 48px;
+    }
+  }
+
   /* CTA — single call to action, styled with the same tokens as
      .contact__headline / .contact__link, adapted to a light background. */
   .case-cta {
@@ -447,10 +512,10 @@
          first section read as that section being oversized rather than as
          air. The hero is now only as tall as it needs to be and sits at the
          top; the space below it is spent deliberately instead. */
-      min-height: auto;
+      min-height: 58vh;
       justify-content: flex-start;
       padding-top: calc(var(--nav-clearance) + var(--space-8));
-      padding-bottom: var(--space-12);
+      padding-bottom: var(--space-4);
     }
 
     .section-divider {
@@ -498,6 +563,13 @@
     </p>
   </section>
 
+  <div class="reveal-panel">
+    <button class="reveal-arrow" type="button" aria-label="Show the case study">
+      <svg width="18" height="64" viewBox="0 0 18 64" fill="none" aria-hidden="true" focusable="false">
+        <path d="M9 0 V56" stroke="currentColor" stroke-width="1"/>
+        <path d="M2 49 L9 56 L16 49" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
   <div class="section-divider">
     <span class="divider-label">Context</span>
   </div>
@@ -578,6 +650,100 @@
   <div class="case-footer-nav">
     <a class="case-back" href="/#proof">← Back to Proof</a>
   </div>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+  <script>
+  (() => {
+    const panel = document.querySelector(".reveal-panel");
+    const hero = document.querySelector(".case-hero");
+    const arrow = document.querySelector(".reveal-arrow");
+    const nav = document.querySelector(".nav");
+    if (!panel || !hero || !arrow || typeof gsap === "undefined") return;
+
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+    /* How much of the reveal's natural length to actually spend, per
+       breakpoint. Full length on a desktop; on a phone the run is cut, since
+       the first paragraph has to arrive without a long scroll in front of it.
+       Calibration knobs — the geometry below is measured, these are taste. */
+    const RUN_DESKTOP = 1;
+    const RUN_MOBILE = 0.75;
+
+    /* Where the panel's leading edge finishes: a little below the nav, so the
+       first heading clears the bar instead of sliding under it. */
+    const LANDING_GAP = 24;
+
+    let revealST = null;
+
+    const mm = gsap.matchMedia();
+
+    mm.add({
+      isMobile: "(max-width: 800px)",
+      isDesktop: "(min-width: 801px)"
+    }, (ctx) => {
+      const { isMobile } = ctx.conditions;
+
+      /* The panel's layout position is the hero's bottom edge, so whatever is
+         left of the window below the hero is exactly how far down the panel
+         has to start for its top edge to rest on the bottom of the screen.
+         Measured rather than hard-coded, so it holds at any window height. */
+      const lift = () => Math.max(0, window.innerHeight - hero.offsetHeight);
+
+      /* Spend enough scroll to carry the leading edge from the bottom of the
+         window up to just under the nav. */
+      const run = () => {
+        const natural = hero.offsetHeight - (nav ? nav.offsetHeight : 0) - LANDING_GAP;
+        return Math.max(180, natural * (isMobile ? RUN_MOBILE : RUN_DESKTOP));
+      };
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          /* The hero is the trigger, not the panel. ScrollTrigger measures a
+             trigger through getBoundingClientRect, which includes transforms,
+             so triggering off the element being moved would have it chasing
+             its own tail. The hero never moves. */
+          trigger: hero,
+          /* "top top" — i.e. scroll position zero. Not "bottom bottom": the
+             hero is deliberately shorter than the window, so its bottom edge
+             reaches the bottom of the screen at a negative scroll position,
+             and the reveal would already be part-played before the visitor
+             had scrolled at all. */
+          start: "top top",
+          end: () => "+=" + run(),
+          scrub: true,
+          invalidateOnRefresh: true
+        }
+      });
+
+      /* Durations are explicit and the timeline is 1 long, so they read as
+         shares of the scroll: the panel travels across the whole of it, the
+         arrow leaves over the last quarter. Left to GSAP's default 0.5 the
+         panel finished halfway down the run and then sat still. */
+      tl.fromTo(panel, { y: lift }, { y: 0, ease: "none", duration: 1 }, 0)
+        /* The arrow only has a job while the panel is still on its way. */
+        .to(arrow, { autoAlpha: 0, ease: "none", duration: 0.25 }, 0.75);
+
+      revealST = tl.scrollTrigger;
+
+      return () => { revealST = null; };
+    });
+
+    /* Click the arrow and the page finishes the reveal for you: the target is
+       the trigger's own end, so it lands exactly where the scrub would. */
+    arrow.addEventListener("click", () => {
+      const y = revealST ? revealST.end : window.innerHeight;
+      gsap.to(window, { duration: 1, scrollTo: { y }, ease: "power2.inOut" });
+    });
+
+    /* Both the lift and the run are read off real geometry, so they have to be
+       recomputed once images have settled the layout. */
+    window.addEventListener("load", () => ScrollTrigger.refresh());
+  })();
+  </script>
 
 </body>
 </html>
