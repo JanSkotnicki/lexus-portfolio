@@ -477,47 +477,17 @@
     }
   }
 
-  /* CTA — single call to action, styled with the same tokens as
-     .contact__headline / .contact__link, adapted to a light background. */
-  .case-cta {
-    padding: var(--space-16) 8vw var(--space-24);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-4);
-  }
-
-  .case-cta__line {
-    max-width: 700px;
-    font-family: var(--font-display);
-    font-size: var(--headline-statement);
-    font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: -0.02em;
-  }
-
-  .case-cta__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 1.125rem;
-    font-weight: 500;
-    color: #111111;
-    text-decoration: none;
-    cursor: pointer;
-    transition: transform 250ms ease-out;
-  }
-
-  .case-cta__link:hover {
-    transform: translateX(4px);
-  }
-
   /* Footer back-link — a second route back, closing the page off. The nav
      is fixed now (see .nav above), so this no longer carries the way back
      on its own; it stays sized up so it reads as a deliberate closing
      gesture rather than a small utility link. */
   .case-footer-nav {
-    padding: 0 8vw var(--space-16);
+    /* The top padding is Golf's --space-16, the gap it spends between its
+       last section and the start of the footer region. There is no call to
+       action on this page to carry that gap, so the footer carries it —
+       which is what keeps the back-link sitting where Golf's sits rather
+       than running straight on from the last paragraph. */
+    padding: var(--space-16) 8vw var(--space-16);
   }
 
   .case-footer-nav .case-back {
@@ -550,18 +520,11 @@
       margin-bottom: var(--space);
     }
 
-    .case-cta {
-      padding-top: var(--space-12);
-      /* 128px here left the back-link stranded a screen below the call to
-         action it belongs under. The link closes the page off, so it reads as
-         part of that ending rather than as something washed up at the bottom
-         of the document. */
-      padding-bottom: var(--space-4);
-    }
-
-    /* Same reason, at the other end: the page no longer trails 128px of empty
-       paper after its last line. */
+    /* Mirrors Golf on this breakpoint: --space-12 above the footer region,
+       and a shorter tail so the page does not trail empty paper after its
+       last line. */
     .case-footer-nav {
+      padding-top: var(--space-12);
       padding-bottom: var(--space-8);
     }
   }
@@ -577,16 +540,14 @@
 
   <section class="case-hero">
     <h1 class="case-hero__headline">
-      <span class="hero__line">[TODO — headline line 1]</span>
-      <span class="hero__line">[TODO — headline line 2]</span>
-      <span class="hero__line">[TODO — headline line 3]</span>
+      <span class="hero__line">Lexus ES Premiere</span>
     </h1>
     <p class="case-hero__meta">
       <span class="case-hero__meta-item"><span class="case-hero__meta-label">Client</span> Lexus Kraków-Zakopiańska</span>
       <span class="case-hero__meta-sep" aria-hidden="true">/</span>
-      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Venue</span> Kraków-Zakopiańska showroom</span>
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Venue</span> Dealership showroom, Zakopiańska</span>
       <span class="case-hero__meta-sep" aria-hidden="true">/</span>
-      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Role</span> Event marketing, CRM</span>
+      <span class="case-hero__meta-item"><span class="case-hero__meta-label">Role</span> Event marketing, sales support</span>
     </p>
   </section>
 
@@ -686,11 +647,6 @@
       <p class="case-block__para">That single split turns one attendance number into three: existing owners, returning prospects, first contacts. It answers whether the open format brought in new people or gave existing customers a reason to come back — two entirely different outcomes currently reported as the same number.</p>
       <p class="case-block__para">Nobody at dealer level owns this decision. Sales owns the sale, marketing owns the invitation, and the event sits between them belonging to neither. That is why the question doesn't get asked — not cost, not technology. The measurement gap here is organisational, not technical.</p>
     </div>
-  </section>
-
-  <section class="case-cta">
-    <p class="case-cta__line">[TODO — closing statement]</p>
-    <a class="case-cta__link" href="/#contact">[TODO — CTA label] →</a>
   </section>
 
   <div class="case-footer-nav">
