@@ -106,25 +106,6 @@
     }
   }
 
-  /* Back link — same font weight/size as .nav__link, same hover language
-     as .contact__link (translate on hover), reused rather than invented. */
-  .case-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #111111;
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    transition: transform 250ms ease-out, opacity 0.2s ease;
-  }
-
-  .case-back:hover {
-    transform: translateX(-4px);
-    opacity: 0.7;
-  }
-
   /* Hero — text-led opening per design-spec.md §3: title, then a one-line
      metadata row. The page carries no photographs at all apart from the fan.
      It holds the first screen and centres the pair inside it instead of
@@ -451,13 +432,17 @@
     }
   }
 
-  /* CTA — single call to action, styled with the same tokens as
-     .contact__headline / .contact__link, adapted to a light background. */
+  /* Closing block — the same object as the ES case study's: centred rather
+     than set against the left margin, and ending in the rounded button the
+     home page uses on its tiles instead of a plain text link. The way back is
+     not repeated down here on either page; the nav carries it, fixed, for the
+     whole read. */
   .case-cta {
     padding: var(--space-16) 8vw var(--space-24);
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
     gap: var(--space-4);
   }
 
@@ -470,33 +455,27 @@
     letter-spacing: -0.02em;
   }
 
+  /* Values lifted from .proof__cta on the home page rather than approximated:
+     same radius, padding, type and accent. */
   .case-cta__link {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
+    min-height: 44px;
+    padding: 0.7rem 1.6rem;
+    border: 1px solid rgba(26, 25, 23, 0.15);
+    border-radius: 24px;
+    background-color: transparent;
     font-size: 1.125rem;
     font-weight: 500;
-    color: #111111;
+    color: #8C7A5B;
     text-decoration: none;
-    cursor: pointer;
-    transition: transform 250ms ease-out;
+    transition: background-color 0.3s ease;
   }
 
   .case-cta__link:hover {
-    transform: translateX(4px);
-  }
-
-  /* Footer back-link — a second route back, closing the page off. The nav
-     is fixed now (see .nav above), so this no longer carries the way back
-     on its own; it stays sized up so it reads as a deliberate closing
-     gesture rather than a small utility link. */
-  .case-footer-nav {
-    padding: 0 8vw var(--space-16);
-  }
-
-  .case-footer-nav .case-back {
-    font-size: 1.125rem;
-    font-weight: 500;
+    background-color: rgba(140, 122, 91, 0.08);
   }
 
   @media (max-width: 768px) {
@@ -525,17 +504,7 @@
 
     .case-cta {
       padding-top: var(--space-12);
-      /* 128px here left the back-link stranded a screen below the call to
-         action it belongs under. The link closes the page off, so it reads as
-         part of that ending rather than as something washed up at the bottom
-         of the document. */
-      padding-bottom: var(--space-4);
-    }
-
-    /* Same reason, at the other end: the page no longer trails 128px of empty
-       paper after its last line. */
-    .case-footer-nav {
-      padding-bottom: var(--space-8);
+      padding-bottom: var(--space-16);
     }
   }
 </style>
@@ -646,10 +615,6 @@
     <p class="case-cta__line">This isn't a golf problem. It's a measurement problem.</p>
     <a class="case-cta__link" href="/#contact">Let's talk about measuring it →</a>
   </section>
-
-  <div class="case-footer-nav">
-    <a class="case-back" href="/#proof">← Back to Proof</a>
-  </div>
 
   </div>
 
